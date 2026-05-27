@@ -1,0 +1,16 @@
+.git
+node_modules
+dist
+coverage
+*.epub
+*.log
+.DS_Store
+.private
+.claude
+.playwright-mcp
+bench-results
+.e2e-init-*/
+.migrate-roundtrip/
+examples/
+tests/
+docs/
