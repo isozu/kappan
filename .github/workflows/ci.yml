@@ -207,8 +207,9 @@ jobs:
   # レポートを artifact 化する（運用時の trend 追跡用）。
   ace:
     runs-on: ubuntu-latest
-    # フィクスチャ全体に ACE を回すと時間がかかるため、push/schedule のみで実行。
-    if: github.event_name == 'push' || github.event_name == 'schedule'
+    # フィクスチャ全体に ACE を回すと時間がかかるため、schedule のみで実行。
+    # push 時は @daisy/ace-core のオプションインストールが不安定なため週次 schedule に限定。
+    if: github.event_name == 'schedule'
     steps:
       - uses: actions/checkout@v4
 
