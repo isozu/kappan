@@ -1,6 +1,33 @@
 import { definePlugin } from '@kappan/core';
-import type { Root as MdastRoot, Image, Text, Paragraph, RootContent, Heading, Code } from 'mdast';
+import type {
+  Root as MdastRoot,
+  Image,
+  Text,
+  Paragraph,
+  RootContent,
+  Heading,
+  Code,
+  Table,
+  Parent,
+  Blockquote,
+} from 'mdast';
 import { visit } from 'unist-util-visit';
+
+/**
+ * `<figcaption>` として描画される段落ノードを作る。
+ *
+ * mdast の `Data`（mdast-util-to-hast が `hName` / `hProperties` で拡張済み）を使い、
+ * mdast→hast 段階で `<figure>` / `<figcaption>` を生成する。これにより unsafeHtml の
+ * 全モード（false / sanitized / trusted）で安定して図表キャプションを出力できる
+ * （onHast に置いたデータ属性は sanitized モードで除去されるため使わない）。
+ */
+function makeFigcaption(text: string): Paragraph {
+  return {
+    type: 'paragraph',
+    data: { hName: 'figcaption' },
+    children: [{ type: 'text', value: text }],
+  };
+}
 
 export interface FigureNumberingOptions {
   /** 図番号のラベル形式。デフォルト 'jp'（図1.1）。'en' は Fig. 1.1 */
@@ -69,7 +96,12 @@ interface ChapterDefsRecord {
  *   - 章番号は front-matter `id`（ch01）→ 1、h1 内の数字 → fallback、最後に出現順
  *
  * 参照記法（Pandoc-crossref 互換）：
- *   `![alt](path){#fig:id}` → `図1.1`（image alt が numbered caption に）
+ *   `![alt](path){#fig:id}` → 単独段落のブロック画像は
+ *      `<figure><img/><figcaption>図1.1: alt</figcaption></figure>` に変換し、
+ *      番号付きキャプションを可視で出す（画像にプローズが続くインライン用法は
+ *      従来どおり alt に番号を載せる）。
+ *   GFM テーブル ＋ 直前/直後の `{#tbl:id} キャプション` 段落 →
+ *      `<figure><figcaption>表1.1: キャプション</figcaption><table>…</table></figure>`。
  *   `## タイトル {#sec:foo}` → `1.1`（heading に id 属性が付き、後で参照可）
  *   `$$..$$ {#eq:bar}` → `(1.1)`（コードブロック直後の `{#eq:id}` テキスト）
  *   `[@fig:foo]` / `[@sec:bar]` / `[@chap:baz]` → 「図1.1」「節1.1」「第3章」
@@ -276,11 +308,89 @@ function collectAndNumber(
         }
         if (id) idMap[kind].set(id, number);
         const label = labels[kind];
-        const numberedAlt = `${label}${number}: ${imageNode.alt ?? ''}`.replace(/: $/, '');
-        imageNode.alt = numberedAlt;
+        const desc = imageNode.alt ?? '';
+        const caption = desc ? `${label}${number}: ${desc}` : `${label}${number}`;
+
+        // ブロック画像（段落の中身が実質その画像だけ）なら可視キャプション付き
+        // `<figure>` に変換する。番号は figcaption に出し、alt は素の説明に戻す
+        // （スクリーンリーダーで番号と説明が二重読みされないように）。
+        // 画像にプローズが続くインライン用法は従来どおり alt に番号を載せる。
+        const isBlockImage = paragraph.children.every((c, idx) => {
+          if (idx === i) return true; // 画像自身
+          if (c.type === 'text') return c.value.trim() === '';
+          return false;
+        });
+        if (isBlockImage) {
+          imageNode.alt = desc;
+          paragraph.data = { ...paragraph.data, hName: 'figure' };
+          // figcaption は mdast 上は Paragraph だが hName で <figcaption> になる。
+          // Paragraph.children は PhrasingContent[] のため、型を緩めて差し込む。
+          paragraph.children = [
+            imageNode,
+            makeFigcaption(caption),
+          ] as unknown as Paragraph['children'];
+          break; // この段落は figure に確定したので走査終了
+        }
+        imageNode.alt = caption;
       }
     }
   });
+
+  // GFM テーブルのキャプション採番。
+  // テーブルの直前（推奨）または直後の段落が `{#tbl:id}` マーカーを持つとき、
+  // そのテーブルを `<figure>` でラップし「表N.N: キャプション」を figcaption に出す。
+  // 画像形式の `{#tbl:id}` とは別経路だが、tblCounter を共有する（画像表 → GFM 表の順）。
+  interface TableAction {
+    readonly parent: Parent;
+    readonly table: Table;
+    readonly captionPara: Paragraph;
+    readonly captionText: string;
+    readonly id: string;
+  }
+  const tableActions: TableAction[] = [];
+  visit(tree, 'table', (table: Table, index, parent) => {
+    if (!parent || typeof index !== 'number') return;
+    for (const pos of [index - 1, index + 1]) {
+      const sib = parent.children[pos];
+      if (!sib || sib.type !== 'paragraph') continue;
+      const text = collectText(sib.children);
+      const m = text.match(
+        /^\s*(?:表|Table)?\s*[:：]?\s*([\s\S]*?)\s*\{#tbl:([a-zA-Z0-9_-]+)\}\s*$/,
+      );
+      if (m) {
+        tableActions.push({
+          parent: parent as Parent,
+          table,
+          captionPara: sib as Paragraph,
+          captionText: (m[1] ?? '').trim(),
+          id: m[2]!,
+        });
+        break;
+      }
+    }
+  });
+  for (const act of tableActions) {
+    tblCounter += 1;
+    const number = `${chapterNum}.${tblCounter}`;
+    idMap.tbl.set(act.id, number);
+    const label = labels.tbl;
+    const captionText = act.captionText
+      ? `${label}${number}: ${act.captionText}`
+      : `${label}${number}`;
+    // blockquote をキャリアにして hName で figure に上書きする。
+    // figure 内は [figcaption, table]（表のキャプションは上に置くのが慣行）。
+    const figureNode: Blockquote = {
+      type: 'blockquote',
+      data: { hName: 'figure', hProperties: { className: ['table-figure'] } },
+      children: [makeFigcaption(captionText), act.table],
+    };
+    const ch = act.parent.children as RootContent[];
+    const ti = ch.indexOf(act.table);
+    if (ti === -1) continue;
+    ch[ti] = figureNode;
+    const ci = ch.indexOf(act.captionPara);
+    if (ci !== -1) ch.splice(ci, 1);
+  }
 
   // 見出し（h2 / h3 / h4）の `{#sec:id}` を section とみなす
   visit(tree, 'heading', (heading: Heading) => {

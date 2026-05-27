@@ -57,6 +57,24 @@ export function parseMarkdownToMdast(markdown: string): MdastRoot {
   return parseProcessor.parse(markdown) as MdastRoot;
 }
 
+interface FootnoteLabels {
+  /** 脚注セクションの見出しテキスト */
+  readonly label: string;
+  /** 各脚注の戻りリンク（↩）の aria-label */
+  readonly backLabel: string;
+}
+
+/**
+ * 言語コードから脚注ラベルを決める。日本語（`ja`）は「脚注」、それ以外は
+ * mdast-util-to-hast の既定と同じ英語ラベルにフォールバックする。
+ */
+function footnoteLabelsFor(language: string): FootnoteLabels {
+  if (language.toLowerCase().startsWith('ja')) {
+    return { label: '脚注', backLabel: '本文に戻る' };
+  }
+  return { label: 'Footnotes', backLabel: 'Back to content' };
+}
+
 /**
  * EPUB 3.3 の XHTML で許容される要素・属性を含む拡張 sanitize スキーマ。
  *
@@ -138,8 +156,18 @@ export async function renderMdastToXhtml(
   opts: RenderChapterOptions,
 ): Promise<string> {
   const allowDangerous = opts.unsafeHtml !== false;
+  const fn = footnoteLabelsFor(opts.language);
   const mdastToHast = unified().use(remarkRehype, {
     allowDangerousHtml: allowDangerous,
+    // GFM 脚注セクションの見出しラベルを言語に合わせる。mdast-util-to-hast の
+    // 既定は英語 "Footnotes" ＋ class="sr-only"（視覚的に隠す）だが、Kappan は
+    // 「脚注」を可視の章末見出しとして出す（リフロー型リーダーで区切りが分かるように）。
+    // class は付けない（`id="footnote-label"` が常に残るのでテーマはそれで装飾する。
+    // sanitized モードでは許可外 class が除去され空 class="" が残るのを避ける）。
+    footnoteLabel: fn.label,
+    footnoteLabelTagName: 'h2',
+    footnoteLabelProperties: {},
+    footnoteBackLabel: fn.backLabel,
   });
 
   // 3. mdast → hast
@@ -256,7 +284,8 @@ export async function renderMdastToXhtml(
  * EPUB 互換の `<aside epub:type="footnotes">` 構造に変換する。
  *
  * - 外側を `<section>` → `<aside epub:type="footnotes">` に置き換える
- * - 内部の `<h2 id="footnote-label">` はそのまま保持（スクリーンリーダー対応）
+ * - 内部の `<h2 id="footnote-label">` はそのまま保持（ラベルは言語別・可視。
+ *   テキストとクラスは remark-rehype の footnoteLabel オプションで設定済み）
  * - 各 `<li id="user-content-fn-N">` に `epub:type="footnote"` 属性を付与
  * - 既存の `data-footnotes` / `data-footnote-ref` / `data-footnote-backref` 属性は
  *   後段の `xhtmlifyDataAttributes` で XHTML 値付き化される

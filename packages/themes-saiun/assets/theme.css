@@ -225,12 +225,28 @@ figure {
   break-inside: avoid;
 }
 
+figure {
+  margin: 1.6em 0;
+}
+
+figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
 figcaption {
   font-size: 0.88em;
   color: var(--saiun-muted);
   margin-top: 0.5em;
   font-family:
     'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+}
+
+/* 表のキャプションは表の上に置く（figure 内 [figcaption, table] の順） */
+.table-figure figcaption {
+  margin: 0 0 0.4em;
 }
 
 /* plugin-figure-numbering が出力する図表番号（alt 先頭の「図1.1」など）
@@ -363,6 +379,14 @@ section.footnotes {
   border-top: 1px solid var(--saiun-rule);
   font-size: 0.88em;
   color: var(--saiun-muted);
+}
+
+/* 脚注セクションの見出しラベル（言語別・可視。章末の区切りとして控えめに） */
+#footnote-label {
+  margin: 0 0 0.6em;
+  font-size: 1em;
+  font-weight: bold;
+  color: var(--saiun-text);
 }
 
 aside[epub\:type~='footnotes'] ol,

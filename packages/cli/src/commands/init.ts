@@ -182,10 +182,12 @@ import { ruby, kenten } from '@kappan/remark-jp';
  * Saiun（青系アクセント、明朝＋サンセリフ）+ 公式プラグイン 5 種で
  * 横組み技術書を組む。Kohaku（M2-A 以降）も使えるようになったら theme を差し替える。
  *
- * 索引・数式は使う書籍だけ追加する：
+ * 索引・数式・見出し採番は使う書籍だけ追加する：
  *   - 索引: plugins に jpIndex() を足す（docs/howto/build-index.md）
  *   - 数式: plugins に katexMath() を足す。Kindle 向けは katexMath({ output: 'htmlAndMathml' })
  *           （docs/howto/add-katex-math.md）
+ *   - 見出し採番: plugins に headingNumber() を足す（第N章 / 1.1 を自動付与。
+ *           @kappan/plugin-heading-number を import）
  */
 export default defineConfig({
   metadata: {
@@ -204,6 +206,7 @@ export default defineConfig({
     kinsoku(),
     // jpIndex(),   // 索引を使うなら
     // katexMath(), // 数式を使うなら（Kindle: katexMath({ output: 'htmlAndMathml' })）
+    // headingNumber(), // 見出し自動採番（第N章 / 1.1）を使うなら
   ],
 });
 `;
@@ -249,6 +252,9 @@ import { ruby } from '@kappan/remark-jp';
  *
  * Hibana（実用書向け、暖色アクセント）は M2-A 以降で実装予定。M2-D 時点では
  * Mono で代用し、図表番号・ルビ・禁則処理を最低限有効化する。
+ *
+ * 見出し（第N章 / 1.1）を自動採番したいときは headingNumber() を plugins に足す
+ * （@kappan/plugin-heading-number を import）。
  */
 export default defineConfig({
   metadata: {

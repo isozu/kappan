@@ -23,6 +23,9 @@ importers:
       '@kappan/plugin-figure-numbering':
         specifier: workspace:*
         version: link:packages/plugin-figure-numbering
+      '@kappan/plugin-heading-number':
+        specifier: workspace:*
+        version: link:packages/plugin-heading-number
       '@kappan/plugin-jp-index':
         specifier: workspace:*
         version: link:packages/plugin-jp-index
@@ -201,6 +204,22 @@ importers:
         version: 5.9.3
 
   packages/plugin-figure-numbering:
+    dependencies:
+      '@kappan/core':
+        specifier: workspace:*
+        version: link:../core
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
+      unist-util-visit:
+        specifier: ^5.0.0
+        version: 5.1.0
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  packages/plugin-heading-number:
     dependencies:
       '@kappan/core':
         specifier: workspace:*

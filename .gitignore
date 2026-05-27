@@ -17,3 +17,7 @@ bench-results/
 # 著者の内部文書（要件定義書・書籍原稿）。公開しない。
 .private/
 .claude/
+
+# Agent Skills Ninja（VS Code 拡張）が生成するプレースホルダ。追跡しない。
+/AGENTS.md
+/.github/skills/

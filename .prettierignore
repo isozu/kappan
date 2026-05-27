@@ -17,3 +17,6 @@ examples/
 .playwright-mcp/
 # E2E テストがワークスペース配下に展開する一時プロジェクト
 .e2e-init-*/
+# Agent Skills Ninja（VS Code 拡張）が生成するプレースホルダ
+/AGENTS.md
+/.github/skills/
