@@ -11,7 +11,7 @@
 <li class="kinsoku"><strong>P</strong> (Partition tolerance<span class="kinsoku-no-break">)：</span>ネットワーク分断耐性</li>
 </ul>
 <p class="kinsoku">ネットワーク分断は実世界で発生するた<span class="kinsoku-no-break">め、</span>現実的な選択肢は CP か AP のどちらかにな<span class="kinsoku-no-break">る。</span></p>
-<p class="kinsoku"><img src="../images/architecture.png" alt="図2.1: CAP 定理の三項関係"/></p>
+<figure><img src="../images/architecture.png" alt="CAP 定理の三項関係"/><figcaption>図2.1: CAP 定理の三項関係</figcaption></figure>
 <p class="kinsoku">図2.1に示した構造<span class="kinsoku-no-break">は、</span>Kappan のような書籍ビルダにとっても示唆深<span class="kinsoku-no-break">い。</span>
 ローカルマシン上で完結する Kappan は本質的に CP 側だ<span class="kinsoku-no-break">が、</span>分散ビルド<span class="kinsoku-no-break">（M</span>3 想<span class="kinsoku-no-break">定）</span>を
 扱う場合は AP との折り合いが必要になる<sup><a href="#user-content-fn-ch2-distributed-build" id="user-content-fnref-ch2-distributed-build" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">1</a></sup>。</p>
@@ -75,11 +75,11 @@ class VectorClock {
 <li class="kinsoku">ビザンチン障<span class="kinsoku-no-break">害：</span>任意の挙動を取る</li>
 </ol>
 <p class="kinsoku">ビザンチン障害は最も扱いにく<span class="kinsoku-no-break">く、</span>一貫性モデルの選択も再考が必要にな<span class="kinsoku-no-break">る。</span></p>
-<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>
+<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 id="footnote-label">脚注</h2>
 <ol>
 <li id="user-content-fn-ch2-distributed-build" class="kinsoku" epub:type="footnote">
 <p class="kinsoku">分散ビルドは M3 で検討す<span class="kinsoku-no-break">る。</span>M1 では単一マシン前提のた<span class="kinsoku-no-break">め、</span>
-本書のサンプルもローカル完結のみを想定してい<span class="kinsoku-no-break">る。</span> <a href="#user-content-fnref-ch2-distributed-build" data-footnote-backref="data-footnote-backref" aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+本書のサンプルもローカル完結のみを想定してい<span class="kinsoku-no-break">る。</span> <a href="#user-content-fnref-ch2-distributed-build" data-footnote-backref="data-footnote-backref" aria-label="本文に戻る" class="data-footnote-backref">↩</a></p>
 </li>
 </ol>
 </aside></body></html>

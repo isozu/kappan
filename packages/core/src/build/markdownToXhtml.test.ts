@@ -132,9 +132,23 @@ describe('renderChapter — GFM footnotes XHTML 化', () => {
     expect(xhtml).toMatch(/<a[^>]*data-footnote-ref="data-footnote-ref"[^>]*epub:type="noteref"/);
   });
 
-  it('preserves the screen-reader heading <h2 id="footnote-label">', async () => {
+  it('localizes the footnote heading to a visible 「脚注」 label (ja)', async () => {
     const xhtml = await renderChapter(SOURCE, { ...BASE_OPTS, unsafeHtml: false });
-    expect(xhtml).toMatch(/<h2[^>]*id="footnote-label"/);
+    // 見出しは id="footnote-label" を保持しつつ、ラベルは日本語・可視（sr-only を外す）。
+    expect(xhtml).toMatch(/<h2[^>]*id="footnote-label"[^>]*>脚注<\/h2>/);
+    expect(xhtml).not.toContain('sr-only');
+    expect(xhtml).not.toContain('>Footnotes<');
+    // 戻りリンクの aria-label も日本語化される。
+    expect(xhtml).toContain('aria-label="本文に戻る"');
+  });
+
+  it('falls back to the English "Footnotes" label for non-ja languages', async () => {
+    const xhtml = await renderChapter(SOURCE, {
+      ...BASE_OPTS,
+      language: 'en',
+      unsafeHtml: false,
+    });
+    expect(xhtml).toMatch(/<h2[^>]*id="footnote-label"[^>]*>Footnotes<\/h2>/);
   });
 
   it('keeps data-footnote-ref attributes XHTML-valued (not value-less)', async () => {

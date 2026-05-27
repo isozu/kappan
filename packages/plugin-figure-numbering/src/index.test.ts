@@ -23,7 +23,7 @@ function makeTree(): MdastRoot {
         type: 'paragraph',
         children: [
           { type: 'image', url: 'img/a.png', alt: '構成図', title: null },
-          { type: 'text', value: '{#fig:arch} を参照。' },
+          { type: 'text', value: '{#fig:arch}' },
         ],
       },
       {
@@ -42,29 +42,110 @@ function makeTree(): MdastRoot {
 }
 
 describe('figureNumbering plugin', () => {
-  it('numbers figures by chapter and assigns the chapter number from h1', async () => {
+  it('wraps block figures in <figure> with a visible numbered <figcaption>', async () => {
     const plugin = figureNumbering();
     const tree = makeTree();
     await plugin.hooks.onMdast?.(tree, stubCtx);
 
-    const para1 = tree.children[1] as { children: Array<{ type: string; alt?: string }> };
-    const img1 = para1.children[0]!;
-    expect(img1.alt).toBe('図1.1: 構成図');
+    // 図1：段落が figure に変換され、img の alt は素の説明、番号は figcaption に出る。
+    const fig1 = tree.children[1] as {
+      data?: { hName?: string };
+      children: Array<{
+        type: string;
+        alt?: string;
+        data?: { hName?: string };
+        children?: unknown[];
+      }>;
+    };
+    expect(fig1.data?.hName).toBe('figure');
+    const img1 = fig1.children[0]!;
+    expect(img1.type).toBe('image');
+    expect(img1.alt).toBe('構成図');
+    const cap1 = fig1.children[1] as {
+      data?: { hName?: string };
+      children: Array<{ value: string }>;
+    };
+    expect(cap1.data?.hName).toBe('figcaption');
+    expect(cap1.children[0]?.value).toBe('図1.1: 構成図');
 
-    const para3 = tree.children[3] as { children: Array<{ type: string; alt?: string }> };
-    const img2 = para3.children[0]!;
-    expect(img2.alt).toBe('図1.2: 別の図');
+    // 図2：連番が章内で進む。
+    const fig2 = tree.children[3] as {
+      data?: { hName?: string };
+      children: Array<{ data?: { hName?: string }; children?: Array<{ value: string }> }>;
+    };
+    expect(fig2.data?.hName).toBe('figure');
+    expect((fig2.children[1]?.children?.[0] as { value: string }).value).toBe('図1.2: 別の図');
   });
 
-  it('removes the {#fig:id} marker text from the paragraph', async () => {
+  it('keeps the number in alt for inline images followed by prose (no <figure>)', async () => {
     const plugin = figureNumbering();
-    const tree = makeTree();
+    const tree: MdastRoot = {
+      type: 'root',
+      children: [
+        { type: 'heading', depth: 1, children: [{ type: 'text', value: '第1章' }] },
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'image', url: 'i.png', alt: 'アイコン', title: null },
+            { type: 'text', value: '{#fig:icon} を本文に並べる。' },
+          ],
+        },
+      ],
+    };
+    await plugin.hooks.onMdast?.(tree, stubCtx);
+    const para = tree.children[1] as {
+      data?: { hName?: string };
+      children: Array<{ type: string; alt?: string; value?: string }>;
+    };
+    // インライン用法は figure に変換せず、従来どおり alt に番号を載せる。
+    expect(para.data?.hName).toBeUndefined();
+    expect(para.children[0]?.alt).toBe('図1.1: アイコン');
+    expect(para.children[1]?.value).toBe(' を本文に並べる。');
+  });
+
+  it('numbers a GFM table with a {#tbl:id} caption paragraph into a <figure>', async () => {
+    const plugin = figureNumbering();
+    const tree: MdastRoot = {
+      type: 'root',
+      children: [
+        { type: 'heading', depth: 1, children: [{ type: 'text', value: '第2章' }] },
+        { type: 'paragraph', children: [{ type: 'text', value: '比較表 {#tbl:cmp}' }] },
+        {
+          type: 'table',
+          align: [null, null],
+          children: [
+            {
+              type: 'tableRow',
+              children: [
+                { type: 'tableCell', children: [{ type: 'text', value: 'A' }] },
+                { type: 'tableCell', children: [{ type: 'text', value: 'B' }] },
+              ],
+            },
+          ],
+        },
+        { type: 'paragraph', children: [{ type: 'text', value: '[@tbl:cmp] を参照。' }] },
+      ],
+    };
     await plugin.hooks.onMdast?.(tree, stubCtx);
 
-    const para1 = tree.children[1] as { children: Array<{ type: string; value?: string }> };
-    const markerText = para1.children[1]!;
-    expect(markerText.value).not.toContain('{#fig:arch}');
-    expect(markerText.value).toContain('を参照');
+    // caption 段落は消え、table が figure でラップされる。
+    const fig = tree.children[1] as {
+      type: string;
+      data?: { hName?: string };
+      children: Array<{
+        type: string;
+        data?: { hName?: string };
+        children?: Array<{ value: string }>;
+      }>;
+    };
+    expect(fig.data?.hName).toBe('figure');
+    expect(fig.children[0]?.data?.hName).toBe('figcaption');
+    expect(fig.children[0]?.children?.[0]?.value).toBe('表2.1: 比較表');
+    expect(fig.children[1]?.type).toBe('table');
+
+    // [@tbl:cmp] 参照が解決される。
+    const ref = tree.children[2] as { children: Array<{ value: string }> };
+    expect(ref.children[0]?.value).toBe('表2.1 を参照。');
   });
 
   it('resolves [@fig:id] references to numbered labels', async () => {
@@ -81,8 +162,11 @@ describe('figureNumbering plugin', () => {
     const tree = makeTree();
     await plugin.hooks.onMdast?.(tree, stubCtx);
 
-    const para1 = tree.children[1] as { children: Array<{ type: string; alt?: string }> };
-    expect(para1.children[0]?.alt).toBe('Fig.1.1: 構成図');
+    const fig1 = tree.children[1] as {
+      children: Array<{ type: string; alt?: string; children?: Array<{ value: string }> }>;
+    };
+    expect(fig1.children[0]?.alt).toBe('構成図');
+    expect(fig1.children[1]?.children?.[0]?.value).toBe('Fig.1.1: 構成図');
 
     const para2 = tree.children[2] as { children: Array<{ type: string; value?: string }> };
     expect(para2.children[0]?.value).toBe('Fig.1.1 のとおりだ。');
@@ -208,7 +292,12 @@ describe('figureNumbering plugin', () => {
       ],
     };
     await plugin.hooks.onMdast?.(tree, stubCtx);
-    const para = tree.children[1] as { children: Array<{ type: string; alt?: string }> };
-    expect(para.children[0]?.alt).toBe('図5.1: a');
+    const fig = tree.children[1] as {
+      data?: { hName?: string };
+      children: Array<{ type: string; alt?: string; children?: Array<{ value: string }> }>;
+    };
+    expect(fig.data?.hName).toBe('figure');
+    expect(fig.children[0]?.alt).toBe('a');
+    expect(fig.children[1]?.children?.[0]?.value).toBe('図5.1: a');
   });
 });
