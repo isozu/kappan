@@ -1,0 +1,19 @@
+node_modules/
+dist/
+coverage/
+pnpm-lock.yaml
+*.epub
+tests/golden/
+# fixtures は入力データ（golden の元）。整形すると golden が変わるため対象外。
+tests/fixtures/
+# サンプル書籍・ドッグフード原稿（Re:VIEW 実サンプル含む）。著者原稿の原形を保持する。
+defi-book/
+defi-book-kappan/
+my-book/
+my-book-kappan/
+examples/
+# CI が migrate-roundtrip で生成する一時ディレクトリ
+.migrate-roundtrip/
+.playwright-mcp/
+# E2E テストがワークスペース配下に展開する一時プロジェクト
+.e2e-init-*/

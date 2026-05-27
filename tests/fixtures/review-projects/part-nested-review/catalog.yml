@@ -1,0 +1,11 @@
+PREDEF:
+  - preface.re
+PART:
+  第1部:
+    - p1-intro.re
+    - p1-detail.re
+  第2部:
+    - p2-intro.re
+    - p2-detail.re
+POSTDEF:
+  - colophon.re

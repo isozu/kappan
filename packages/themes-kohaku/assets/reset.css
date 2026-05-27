@@ -1,0 +1,52 @@
+/*
+ * Kappan Kohaku Theme — Reset
+ *
+ * Saiun と同じ最小リセット。学術書向けに行間と margin を引き締めるのは theme.css 側。
+ */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+}
+
+body {
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+ul,
+ol,
+dl,
+li,
+dt,
+dd,
+figure,
+hr {
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+ruby > rt {
+  font-size: 0.5em;
+  line-height: 1.2;
+}

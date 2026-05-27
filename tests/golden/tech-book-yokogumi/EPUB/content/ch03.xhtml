@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja" lang="ja"><head><meta charset="utf-8"></meta><title>第3章 プロトコル比較</title><link rel="stylesheet" type="text/css" href="../styles/theme.css"></link></head><body><h1>第3章 プロトコル比較</h1>
+<p class="kinsoku">本章で<span class="kinsoku-no-break">は、</span>現代の <ruby>主要<rt>しゅよう</rt></ruby>な通信プロトコルを比較す<span class="kinsoku-no-break">る。</span>実務での選定で<span class="kinsoku-no-break">は、</span>
+<em class="kenten">要件の優先順位</em>を明確にしないと客観的な判断ができな<span class="kinsoku-no-break">い。</span></p>
+<h2>3.1 HTTP/1.1 と HTTP/2 と HTTP/3</h2>
+<p class="kinsoku">3 つの HTTP バージョン<span class="kinsoku-no-break">は、</span>それぞれ異なる課題を解決するために生まれ<span class="kinsoku-no-break">た。</span></p>
+<ul>
+<li class="kinsoku">HTTP/1.<span class="kinsoku-no-break">1：</span>人間が読めるテキストベー<span class="kinsoku-no-break">ス。</span>1 接続 1 リクエストが基本</li>
+<li class="kinsoku">HTTP/<span class="kinsoku-no-break">2：</span>バイナリフレーミングと多重<span class="kinsoku-no-break">化。</span>1 接続で並列リクエスト</li>
+<li class="kinsoku">HTTP/<span class="kinsoku-no-break">3：</span>トランスポートを QUIC に置<span class="kinsoku-no-break">換。</span>ヘッドオブラインブロッキングを根絶</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>バージョン</th>
+<th>トランスポート</th>
+<th>ヘッダ圧縮</th>
+<th>サーバープッシュ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP/1.1</td>
+<td>TCP</td>
+<td>なし</td>
+<td>なし</td>
+</tr>
+<tr>
+<td>HTTP/2</td>
+<td>TCP</td>
+<td>HPACK</td>
+<td>あり</td>
+</tr>
+<tr>
+<td>HTTP/3</td>
+<td>QUIC (UDP)</td>
+<td>QPACK</td>
+<td>あり</td>
+</tr>
+</tbody>
+</table>
+<p class="kinsoku">[@tbl:http-versions<span class="kinsoku-no-break">]：</span>HTTP の世代比<span class="kinsoku-no-break">較。</span></p>
+<h2>3.2 gRPC</h2>
+<p class="kinsoku">gRPC は HTTP/2 上のバイナリ RPC プロトコルであ<span class="kinsoku-no-break">る。</span>Protocol Buffers を IDL として
+スキーマ駆動で API を定義す<span class="kinsoku-no-break">る。</span></p>
+<pre><code class="language-protobuf">service BookService {
+  rpc GetBook(GetBookRequest) returns (Book);
+  rpc ListBooks(ListBooksRequest) returns (stream Book);
+}
+
+message Book {
+  string id = 1;
+  string title = 2;
+  repeated string authors = 3;
+}
+</code></pre>
+<p class="kinsoku">リスト3.1<span class="kinsoku-no-break">（[</span>@lst:grpc-proto<span class="kinsoku-no-break">]）</span>は典型的な protobuf 定<span class="kinsoku-no-break">義。</span></p>
+<p class="kinsoku">サーバストリーミングと双方向ストリーミングが標準で扱えるた<span class="kinsoku-no-break">め、</span><em class="kenten">リアルタイム性</em>の
+要件があるシステムでは有力な選択肢になる<sup><a href="#user-content-fn-ch3-streaming" id="user-content-fnref-ch3-streaming" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">1</a></sup>。</p>
+<h2>3.3 WebSocket</h2>
+<p class="kinsoku">WebSocket は HTTP の Upgrade ハンドシェイク後に双方向の TCP コネクションを開<span class="kinsoku-no-break">く。</span></p>
+<pre><code class="language-typescript">const ws = new WebSocket('wss://example.com/feed');
+ws.addEventListener('message', (e) => {
+  const msg = JSON.parse(e.data);
+  handleEvent(msg);
+});
+ws.send(JSON.stringify({ type: 'subscribe', channel: 'ticks' }));
+</code></pre>
+<p class="kinsoku">リスト3.2 のように API は単純<span class="kinsoku-no-break">で、</span>ブラウザ／Node 両方で同じ感覚で扱え<span class="kinsoku-no-break">る。</span></p>
+<blockquote class="kinsoku">
+<p class="kinsoku">WebSocket は<span class="kinsoku-no-break">「常</span>時接<span class="kinsoku-no-break">続」</span>のためのプロトコルであ<span class="kinsoku-no-break">り、</span>リクエスト／レスポンスを
+モデル化したい場合は素直に HTTP を使う方がよ<span class="kinsoku-no-break">い。</span></p>
+<p class="kinsoku">— プロトコル選定の原則</p>
+</blockquote>
+<h2>3.4 プロトコル選定の指針</h2>
+<p class="kinsoku">選定では次の軸を検討す<span class="kinsoku-no-break">る。</span></p>
+<ol>
+<li class="kinsoku">双方向性が必要か<span class="kinsoku-no-break">（必</span>要なら WebSocket / gRPC streamin<span class="kinsoku-no-break">g）</span></li>
+<li class="kinsoku">強い型定義が必要か<span class="kinsoku-no-break">（必</span>要なら gRP<span class="kinsoku-no-break">C）</span></li>
+<li class="kinsoku">ブラウザ直対応が必要か<span class="kinsoku-no-break">（必</span>要なら HTTP / WebSocke<span class="kinsoku-no-break">t）</span></li>
+<li class="kinsoku">帯域効率が必要か<span class="kinsoku-no-break">（必</span>要ならバイナリプロトコ<span class="kinsoku-no-break">ル）</span></li>
+</ol>
+<p class="kinsoku">これらの組み合わせ<span class="kinsoku-no-break">で、</span>HTTP/3 + gRPC のようなハイブリッド構成も増えてき<span class="kinsoku-no-break">た。</span></p>
+<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>
+<ol>
+<li id="user-content-fn-ch3-streaming" class="kinsoku" epub:type="footnote">
+<p class="kinsoku">ストリーミングは <ruby>便利<rt>べんり</rt></ruby>だ<span class="kinsoku-no-break">が、</span>サーバ側のリソース管理が複雑化す<span class="kinsoku-no-break">る。</span>
+バックプレッシャ制御や接続上限の設計が必要にな<span class="kinsoku-no-break">る。</span> <a href="#user-content-fnref-ch3-streaming" data-footnote-backref="data-footnote-backref" aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+</li>
+</ol>
+</aside></body></html>

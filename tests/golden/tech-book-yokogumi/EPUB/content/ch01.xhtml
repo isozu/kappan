@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja" lang="ja"><head><meta charset="utf-8"></meta><title>第1章 ネットワーク基礎</title><link rel="stylesheet" type="text/css" href="../styles/theme.css"></link></head><body><h1>第1章 ネットワーク基礎</h1>
+<p class="kinsoku">ネットワークは現代の<ruby>分散<rt>ぶんさん</rt></ruby>システムの土台であ<span class="kinsoku-no-break">る。</span>本章で<span class="kinsoku-no-break">は、</span>TCP/IP の <ruby>階層構造<rt>かいそうこうぞう</rt></ruby>と
+そこに乗る代表的なプロトコルについ<span class="kinsoku-no-break">て、</span>横組み技術書らしい密度で解説す<span class="kinsoku-no-break">る。</span></p>
+<h2>1.1 OSI 参照モデル</h2>
+<p class="kinsoku"><span id="kappan-idx-1" class="index-term">OSI参照モデル</span>は 7 階層からな<span class="kinsoku-no-break">る。</span>各階層は独立した責務を持<span class="kinsoku-no-break">ち、</span>上位層は下位層の
+詳細を意識せずに通信でき<span class="kinsoku-no-break">る。</span>これを <strong>抽象化</strong> と呼<span class="kinsoku-no-break">び、</span>現代の<em class="kenten">ソフトウェア設計</em>に
+おける最重要原則のひとつ<span class="kinsoku-no-break">だ。</span></p>
+<p class="kinsoku"><img src="../images/network.png" alt="図1.1: ネットワーク階層の概念図"/></p>
+<p class="kinsoku">図1.1に示すよう<span class="kinsoku-no-break">に、</span>各層は明確な役割を持<span class="kinsoku-no-break">つ。</span></p>
+<h3>階層ごとの役割</h3>
+<ol>
+<li class="kinsoku">物理<span class="kinsoku-no-break">層：</span>電気信号やパルスの物理的な伝送</li>
+<li class="kinsoku">データリンク<span class="kinsoku-no-break">層：</span>隣接ノード間のフレーム転送</li>
+<li class="kinsoku">ネットワーク<span class="kinsoku-no-break">層：</span>ルーティングと到達性</li>
+<li class="kinsoku">トランスポート<span class="kinsoku-no-break">層：</span>信頼性とフロー制御</li>
+<li class="kinsoku">セッション<span class="kinsoku-no-break">層：</span>通信セッションの管理</li>
+<li class="kinsoku">プレゼンテーション<span class="kinsoku-no-break">層：</span>データ表現の変換</li>
+<li class="kinsoku">アプリケーション<span class="kinsoku-no-break">層：</span>エンドユーザー機能</li>
+</ol>
+<h2>1.2 IP アドレスとサブネット</h2>
+<p class="kinsoku">IPv4 アドレスは 32 ビッ<span class="kinsoku-no-break">ト、</span>IPv6 アドレスは 128 ビットで表現され<span class="kinsoku-no-break">る。</span>サブネットマスクは
+ネットワーク部とホスト部を区切るためのビットマスクである<sup><a href="#user-content-fn-ch1-cidr" id="user-content-fnref-ch1-cidr" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">1</a></sup>。</p>
+<table>
+<thead>
+<tr>
+<th>プロトコル</th>
+<th>アドレス長</th>
+<th>表記例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IPv4</td>
+<td>32 bit</td>
+<td>192.0.2.1/24</td>
+</tr>
+<tr>
+<td>IPv6</td>
+<td>128 bit</td>
+<td>2001:db8::1/64</td>
+</tr>
+</tbody>
+</table>
+<p class="kinsoku">上表<span class="kinsoku-no-break">（表</span>1.<span class="kinsoku-no-break">1）</span>に示した通<span class="kinsoku-no-break">り、</span>IPv4 と IPv6 はアドレス空間に大きな差があ<span class="kinsoku-no-break">る。</span></p>
+<h2>1.3 TCP と UDP</h2>
+<p class="kinsoku">トランスポート層の代表的なプロトコルは TCP と UDP であ<span class="kinsoku-no-break">る。</span></p>
+<pre><code class="language-typescript">// TCP は信頼性のあるストリーム指向
+const socket = net.createConnection({ port: 8080 });
+socket.on('data', (chunk) => {
+  console.log('received', chunk.length, 'bytes');
+});
+
+// UDP はコネクションレスでメッセージ指向
+const udp = dgram.createSocket('udp4');
+udp.send(Buffer.from('hello'), 53, 'dns.example');
+</code></pre>
+<p class="kinsoku">上記サンプル<span class="kinsoku-no-break">（リ</span>スト1.<span class="kinsoku-no-break">1）</span>からわかるよう<span class="kinsoku-no-break">に、</span>API レベルでも両者の設計思想は異な<span class="kinsoku-no-break">る。</span></p>
+<blockquote class="kinsoku">
+<p class="kinsoku">TCP は信頼<span class="kinsoku-no-break">性、</span>UDP は速<span class="kinsoku-no-break">度。</span>アプリケーション要件に合わせて選<span class="kinsoku-no-break">ぶ。</span></p>
+<p class="kinsoku">— ネットワーク設計の格言</p>
+</blockquote>
+<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>
+<ol>
+<li id="user-content-fn-ch1-cidr" class="kinsoku" epub:type="footnote">
+<p class="kinsoku">CIDR (Classless Inter-Domain Routing) は IPv4 アドレスを柔軟に
+割り当てるための仕組み<span class="kinsoku-no-break">で、</span>現在の IPv4 ネットワーク運用の基礎になってい<span class="kinsoku-no-break">る。</span> <a href="#user-content-fnref-ch1-cidr" data-footnote-backref="data-footnote-backref" aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+</li>
+</ol>
+</aside></body></html>

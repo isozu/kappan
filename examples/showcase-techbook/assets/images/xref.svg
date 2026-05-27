@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="240" viewBox="0 0 760 240" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+  <rect width="760" height="240" fill="#f7f9fc"/>
+  <text x="380" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#1f3a5f">相互参照の解決フロー</text>
+
+  <rect x="60" y="78" width="280" height="120" rx="10" fill="#ffffff" stroke="#1f3a5f" stroke-width="2"/>
+  <text x="200" y="106" text-anchor="middle" font-size="15" font-weight="700" fill="#1f3a5f">採番フェーズ</text>
+  <text x="200" y="134" text-anchor="middle" font-size="13" fill="#5b6b80">id → 番号の対応表を作る</text>
+  <text x="200" y="160" text-anchor="middle" font-size="12" fill="#8a97a8">fig:pipeline → 図1.1</text>
+  <text x="200" y="180" text-anchor="middle" font-size="12" fill="#8a97a8">eq:cost → 式3.1</text>
+
+  <rect x="420" y="78" width="280" height="120" rx="10" fill="#ffffff" stroke="#1f3a5f" stroke-width="2"/>
+  <text x="560" y="106" text-anchor="middle" font-size="15" font-weight="700" fill="#1f3a5f">解決フェーズ</text>
+  <text x="560" y="134" text-anchor="middle" font-size="13" fill="#5b6b80">本文の [@...] をリンク化</text>
+  <text x="560" y="160" text-anchor="middle" font-size="12" fill="#8a97a8">[@fig:pipeline] → 図1.1</text>
+  <text x="560" y="180" text-anchor="middle" font-size="12" fill="#8a97a8">前方参照も解決可</text>
+
+  <g stroke="#1f3a5f" stroke-width="2" fill="#1f3a5f">
+    <path d="M340 138 L416 138"/><path d="M416 138 l-8 -4 v8 z"/>
+  </g>
+  <text x="378" y="128" text-anchor="middle" font-size="12" fill="#1f3a5f">対応表</text>
+</svg>

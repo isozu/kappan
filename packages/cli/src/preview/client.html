@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>Kappan Preview</title>
+    <style>
+      :root {
+        --kp-accent: #1f3a5f;
+        --kp-accent-soft: #2a4a7a;
+        --kp-error: #b03030;
+        --kp-warn: #c47c00;
+        --kp-info: #2a6a7a;
+        --kp-text: #e6e6e6;
+        --kp-bg: #1a1a2e;
+        --kp-panel: #20243a;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        grid-template-rows: 1fr auto;
+        height: 100vh;
+      }
+      aside.nav {
+        grid-row: 1 / span 2;
+        background: var(--kp-bg);
+        color: var(--kp-text);
+        padding: 1em 0.5em;
+        overflow-y: auto;
+        border-right: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+      }
+      aside.nav h1 {
+        font-size: 0.9em;
+        color: #8aa;
+        margin: 0 0 0.5em 0.5em;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      aside.nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        flex: 1;
+      }
+      aside.nav li {
+        margin: 0.25em 0;
+      }
+      aside.nav a {
+        display: block;
+        padding: 0.4em 0.7em;
+        color: var(--kp-text);
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 0.92em;
+      }
+      aside.nav a:hover {
+        background: #2a2a3e;
+      }
+      aside.nav a.active {
+        background: var(--kp-accent);
+        color: #fff;
+      }
+      aside.nav .dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #f0883e;
+        margin-right: 0.5em;
+        vertical-align: middle;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      aside.nav .dot.dirty {
+        opacity: 1;
+      }
+      .build-info {
+        font-size: 0.72em;
+        color: #8aa;
+        padding: 0.5em 0.7em;
+        border-top: 1px solid #333;
+        margin-top: 0.4em;
+      }
+      .build-info .label {
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6a8;
+      }
+      .build-info time {
+        font-variant-numeric: tabular-nums;
+      }
+      main {
+        position: relative;
+        background: #fff;
+        overflow: hidden;
+        grid-column: 2;
+      }
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+        background: #fff;
+      }
+      #status {
+        position: absolute;
+        bottom: 0.7em;
+        right: 1em;
+        background: rgba(31, 58, 95, 0.92);
+        color: #fff;
+        padding: 0.3em 0.7em;
+        border-radius: 3px;
+        font-size: 0.78em;
+        opacity: 0;
+        transition: opacity 0.4s;
+        pointer-events: none;
+      }
+      #status.show {
+        opacity: 1;
+      }
+      #status.error {
+        background: var(--kp-error);
+      }
+      /* エラーオーバーレイ */
+      #error-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: var(--kp-error);
+        color: #fff;
+        padding: 1em 1.4em;
+        font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+        font-size: 0.85em;
+        line-height: 1.5;
+        max-height: 65%;
+        overflow-y: auto;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        display: none;
+        z-index: 10;
+      }
+      #error-overlay.show {
+        display: block;
+      }
+      #error-overlay h2 {
+        margin: 0 0 0.5em 0;
+        font-size: 1em;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      #error-overlay .close-btn {
+        position: absolute;
+        top: 0.6em;
+        right: 0.8em;
+        background: transparent;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 3px;
+        padding: 0.2em 0.6em;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.85em;
+      }
+      #error-overlay .close-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      #error-overlay ul {
+        margin: 0.4em 0 0 0;
+        padding-left: 1.2em;
+      }
+      #error-overlay li {
+        margin: 0.2em 0;
+      }
+      #error-overlay .sev-error {
+        color: #ffd0d0;
+      }
+      #error-overlay .sev-warning {
+        color: #ffe6b0;
+      }
+      #error-overlay .sev-info {
+        color: #d8e8ff;
+      }
+      /* 下部 diagnostics パネル */
+      #diagnostics {
+        grid-column: 2;
+        grid-row: 2;
+        background: var(--kp-panel);
+        color: var(--kp-text);
+        border-top: 1px solid #333;
+        font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+        font-size: 0.82em;
+        max-height: 240px;
+        overflow-y: auto;
+        display: none;
+      }
+      #diagnostics.show {
+        display: block;
+      }
+      #diagnostics header {
+        position: sticky;
+        top: 0;
+        background: var(--kp-panel);
+        padding: 0.4em 0.9em;
+        border-bottom: 1px solid #333;
+        display: flex;
+        align-items: center;
+        gap: 0.6em;
+      }
+      #diagnostics header .count {
+        font-variant-numeric: tabular-nums;
+      }
+      #diagnostics ul {
+        list-style: none;
+        margin: 0;
+        padding: 0.3em 0.9em 0.8em 0.9em;
+      }
+      #diagnostics li {
+        padding: 0.25em 0;
+        border-bottom: 1px dashed #333;
+      }
+      #diagnostics li:last-child {
+        border-bottom: none;
+      }
+      #diagnostics .sev {
+        display: inline-block;
+        width: 4.5em;
+        padding: 0 0.5em;
+        text-align: center;
+        border-radius: 2px;
+        font-size: 0.72em;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-right: 0.5em;
+        font-weight: bold;
+      }
+      #diagnostics .sev-error {
+        background: var(--kp-error);
+        color: #fff;
+      }
+      #diagnostics .sev-warning {
+        background: var(--kp-warn);
+        color: #fff;
+      }
+      #diagnostics .sev-info {
+        background: var(--kp-info);
+        color: #fff;
+      }
+      #diagnostics .sev-hint {
+        background: #555;
+        color: #fff;
+      }
+      #diagnostics .src {
+        color: #8aa;
+        margin-right: 0.5em;
+      }
+      #diagnostics .file {
+        color: #aab;
+        font-size: 0.92em;
+        margin-left: 0.4em;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="nav">
+      <h1>Kappan Preview</h1>
+      <ul id="chapter-list"></ul>
+      <div class="build-info">
+        <div><span class="label">Last build</span></div>
+        <div><time id="last-build-at">—</time></div>
+      </div>
+    </aside>
+    <main>
+      <div id="error-overlay">
+        <button class="close-btn" type="button" id="overlay-close">close</button>
+        <h2 id="error-title">Build error</h2>
+        <pre id="error-message" style="margin: 0; white-space: pre-wrap"></pre>
+        <ul id="error-diagnostics"></ul>
+      </div>
+      <iframe id="preview" name="preview"></iframe>
+      <div id="status"></div>
+    </main>
+    <section id="diagnostics" aria-live="polite">
+      <header>
+        <span>diagnostics</span>
+        <span class="count" id="diag-count">0</span>
+      </header>
+      <ul id="diag-list"></ul>
+    </section>
+    <script src="/__client.js"></script>
+  </body>
+</html>

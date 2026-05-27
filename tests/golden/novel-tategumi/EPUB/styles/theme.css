@@ -1,0 +1,191 @@
+/*
+ * Kappan Sumi Theme（墨）— 縦組み小説
+ *
+ * 用途：縦書き小説・文芸。Kindle Unlimited 商業品質を目標にする。
+ * 設計：横組みでも valid な最小本文スタイルを基底に持ち、`body.kappan-vertical-rl`
+ *       が付いたときだけ縦組み中核（writing-mode・ルビ/圏点縦位置・コードブロック
+ *       横組み内包・約物連続化・章扉・天付き 1 字下げ）を発火させる。
+ *
+ * 縦組みの発火条件:
+ *   - 縦組みビルド時のみ <body class="kappan-vertical-rl"> が付く
+ *   - <html dir="rtl"> は付けない（日本語縦組みには不要かつ有害：詳細は markdownToXhtml.ts 参照）
+ *   - 横組みビルドでは class が付かない → 下記 .kappan-vertical-rl ルールは無効
+ *     （= 既存横組み golden に影響しない）
+ *
+ * リーダー差異は reader-shim が付ける body.reader-<profile> class で吸収する
+ * （末尾「リーダー別 fallback」）。Kindle で @supports が不安定なため、@supports は使わず prefix 併記。
+ */
+
+:root {
+  --sumi-fg: #1a1a1a;
+  --sumi-bg: #fbfbf9;
+}
+
+body {
+  font-family: 'Noto Serif JP', 'YuMincho', 'Hiragino Mincho ProN', serif;
+  color: var(--sumi-fg);
+  background: var(--sumi-bg);
+  line-height: 1.9;
+  font-size: 1rem;
+  /* 論理プロパティで横組み・縦組みの双方に同じ意味の余白を当てる */
+  padding-block: 1.6em;
+  padding-inline: 1.8em;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Noto Serif JP', 'YuMincho', 'Hiragino Mincho ProN', serif;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+h1 {
+  font-size: 1.7em;
+  margin: 2em 0 1em;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.35em;
+  margin: 1.6em 0 0.7em;
+}
+
+p {
+  margin: 0;
+  text-indent: 1em;
+}
+
+/* ============================================================
+ * 縦組み中核（body.kappan-vertical-rl のときだけ発火）
+ * ============================================================ */
+
+body.kappan-vertical-rl {
+  writing-mode: vertical-rl;
+  -webkit-writing-mode: vertical-rl;
+  -epub-writing-mode: vertical-rl;
+  /* 英数字 1 字は正立、連続欧文は横倒し。縦中横は .tcy が別途制御 */
+  text-orientation: mixed;
+  -webkit-text-orientation: mixed;
+  line-height: 1.75;
+  /* dir="rtl" を外部から注入されても天付き（block-start=右端）を守る防衛的宣言 */
+  direction: ltr;
+}
+
+/* コードブロックは縦組み中も横組みに固定。
+ * 縦の本文フローの中で pre だけ horizontal-tb の島にする。
+ * margin-top/bottom で前後の本文と視覚的に分離する（物理 top/bottom = 縦組みでの上下余白）。 */
+body.kappan-vertical-rl pre {
+  writing-mode: horizontal-tb;
+  -webkit-writing-mode: horizontal-tb;
+  -epub-writing-mode: horizontal-tb;
+  text-orientation: mixed;
+  -webkit-text-orientation: mixed;
+  margin-top: 1.2em;
+  margin-bottom: 1.2em;
+}
+body.kappan-vertical-rl pre code {
+  writing-mode: horizontal-tb;
+  -webkit-writing-mode: horizontal-tb;
+  -epub-writing-mode: horizontal-tb;
+  text-orientation: mixed;
+  -webkit-text-orientation: mixed;
+}
+
+/* ルビ：縦組みでは親文字の右側に置く。
+ * 標準 `ruby-position: over` は writing-mode 依存で vertical-rl では右側に出る
+ * （旧ドラフト値 `right` は Chromium で脱落するため使わない、Playwright 実測）。
+ * Blink では -webkit-ruby-position は標準プロパティの別名で `after`→`under`（左側）に
+ * なるため、prefix を先に・標準を後に置き、Blink が標準値で上書きするようにする。
+ * 旧 WebKit/Apple は prefix を拾う。 */
+body.kappan-vertical-rl ruby {
+  -webkit-ruby-position: after;
+  ruby-position: over;
+}
+
+/* 圏点：縦組みでは右側に打つ。`over right`（2 値形式）で vertical-rl の右側に出る
+ * （単独 `right` は Chromium で脱落、Playwright 実測）。 */
+body.kappan-vertical-rl em.kenten {
+  -webkit-text-emphasis-position: over right;
+  text-emphasis-position: over right;
+}
+
+/* ============================================================
+ * 工芸要素（縦組み小説向け）
+ * ============================================================ */
+
+/* 章扉：Kappan は 1 章 = 1 XHTML + page-progression rtl なので各章が新ページから
+ * 開始する。CSS では章頭で改ページを明示し、章タイトルを天（縦組みでは行頭側）に
+ * 寄せて余白を確保する。厳密な「右ページ固定」はリフローでは不可（現状の制約）。 */
+body.kappan-vertical-rl h1 {
+  break-before: page;
+  page-break-before: always;
+  /* 縦組みでは text-align が行内（縦方向）の寄せになる。中央寄せで章タイトルを
+   * 紙面中ほどに置く小説的な体裁。 */
+  text-align: center;
+  margin-block: 4em 3em;
+  margin-inline: 0;
+}
+
+/* 天付き 1 字下げ：地の文は冒頭 1 字下げ、会話文（カギ括弧起こし）は下げない。
+ * narrative / dialogue は remark-jp が <p> に付与する。 */
+body.kappan-vertical-rl p.narrative {
+  text-indent: 1em;
+}
+
+body.kappan-vertical-rl p.dialogue {
+  text-indent: 0;
+}
+
+/* 連続約物：ダーシ（──）・三点リーダ（……）は 1 続きとして扱い、
+ * 途中改行・字間挿入を抑止する。renzoku-dash / renzoku-leader は
+ * remark-jp が <span> でラップする。 */
+body.kappan-vertical-rl .renzoku-dash,
+body.kappan-vertical-rl .renzoku-leader {
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+
+/* 柱（はしら）：リフローではほぼ全リーダーが @page マージンボックスを無視するため
+ * ベストエフォート（「対応する場合のみ」の任意要素）。 */
+@page {
+  margin: 10mm;
+}
+
+/* ============================================================
+ * 縦中横（plugin-tcy-smart が付ける .tcy）
+ * ============================================================ */
+.tcy {
+  text-combine-upright: all;
+  -webkit-text-combine: horizontal;
+  -ms-text-combine-horizontal: all;
+}
+
+/* ============================================================
+ * リーダー別 fallback（reader-shim の body.reader-<profile> 起点）
+ *
+ * Kindle で @supports は不安定。@supports を使わず prefix 併記で
+ * 各リーダーの解釈差を吸収する。縦組み中核は上で prefix 併記済なので、ここは
+ * 各リーダー固有に効く宣言の「駄目押し」を行う。
+ * ============================================================ */
+
+/* Kindle（KFX/Kindle Previewer）：-epub- prefix を明示的に駄目押し */
+body.reader-kindle.kappan-vertical-rl {
+  -epub-writing-mode: vertical-rl;
+}
+
+body.reader-kindle .tcy {
+  -webkit-text-combine: horizontal;
+}
+
+/* Apple Books：ルビ位置は -webkit-ruby-position: after が確実 */
+body.reader-apple.kappan-vertical-rl ruby {
+  -webkit-ruby-position: after;
+}
+
+/* Kobo / Thorium：最低限 writing-mode のみ保証（既知の限界） */
+body.reader-kobo.kappan-vertical-rl,
+body.reader-thorium.kappan-vertical-rl {
+  writing-mode: vertical-rl;
+  -webkit-writing-mode: vertical-rl;
+}

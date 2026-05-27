@@ -1,0 +1,53 @@
+name: Docker Publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/docker/Dockerfile'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Phase M1-E では基本タグ `:0.1` と `:latest-m1` を発行。
+      # フォント / 辞書同梱の `:0.1-full` は M2-B でテーマ拡張と同期して追加する。
+      - name: Extract tags
+        id: tags
+        run: |
+          MAJOR_MINOR="0.1"
+          TAGS="ghcr.io/${{ github.repository_owner }}/kappan-build:${MAJOR_MINOR}"
+          TAGS="$TAGS,ghcr.io/${{ github.repository_owner }}/kappan-build:latest-m1"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            TAGS="$TAGS,ghcr.io/${{ github.repository_owner }}/kappan-build:${VERSION#v}"
+          fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: tools/docker/Dockerfile
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

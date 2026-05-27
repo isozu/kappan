@@ -1,0 +1,3 @@
+# CI が生成するフィクスチャ EPUB。artifact 化するためコミットしない。
+*
+!.gitignore

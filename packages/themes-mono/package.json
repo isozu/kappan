@@ -1,0 +1,36 @@
+{
+  "name": "@kappan/themes-mono",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Kappan Mono theme: a minimal, unopinionated baseline for building custom themes",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./assets/*": "./assets/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "license": "MIT",
+  "keywords": [
+    "kappan"
+  ],
+  "author": "isozu",
+  "homepage": "https://github.com/isozu/kappan#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isozu/kappan.git",
+    "directory": "packages/themes-mono"
+  },
+  "bugs": {
+    "url": "https://github.com/isozu/kappan/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

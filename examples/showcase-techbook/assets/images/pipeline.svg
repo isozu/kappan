@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="220" viewBox="0 0 760 220" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+  <rect width="760" height="220" fill="#f7f9fc"/>
+  <text x="380" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#1f3a5f">Kappan ビルドパイプライン</text>
+  <g>
+    <rect x="24"  y="86" width="120" height="58" rx="8" fill="#ffffff" stroke="#1f3a5f" stroke-width="2"/>
+    <text x="84"  y="112" text-anchor="middle" font-size="15" fill="#1f3a5f">Markdown</text>
+    <text x="84"  y="132" text-anchor="middle" font-size="12" fill="#5b6b80">原稿</text>
+
+    <rect x="186" y="86" width="120" height="58" rx="8" fill="#ffffff" stroke="#1f3a5f" stroke-width="2"/>
+    <text x="246" y="112" text-anchor="middle" font-size="15" fill="#1f3a5f">mdast</text>
+    <text x="246" y="132" text-anchor="middle" font-size="12" fill="#5b6b80">構文木</text>
+
+    <rect x="348" y="86" width="120" height="58" rx="8" fill="#ffffff" stroke="#1f3a5f" stroke-width="2"/>
+    <text x="408" y="112" text-anchor="middle" font-size="15" fill="#1f3a5f">hast</text>
+    <text x="408" y="132" text-anchor="middle" font-size="12" fill="#5b6b80">HTML 木</text>
+
+    <rect x="510" y="86" width="120" height="58" rx="8" fill="#ffffff" stroke="#1f3a5f" stroke-width="2"/>
+    <text x="570" y="112" text-anchor="middle" font-size="15" fill="#1f3a5f">XHTML</text>
+    <text x="570" y="132" text-anchor="middle" font-size="12" fill="#5b6b80">章ページ</text>
+
+    <rect x="672" y="86" width="64" height="58" rx="8" fill="#1f3a5f"/>
+    <text x="704" y="112" text-anchor="middle" font-size="14" fill="#ffffff">EPUB</text>
+    <text x="704" y="132" text-anchor="middle" font-size="11" fill="#cfe0f5">3.3</text>
+  </g>
+  <g stroke="#1f3a5f" stroke-width="2" fill="#1f3a5f">
+    <path d="M144 115 L182 115" /><path d="M182 115 l-8 -4 v8 z"/>
+    <path d="M306 115 L344 115" /><path d="M344 115 l-8 -4 v8 z"/>
+    <path d="M468 115 L506 115" /><path d="M506 115 l-8 -4 v8 z"/>
+    <path d="M630 115 L668 115" /><path d="M668 115 l-8 -4 v8 z"/>
+  </g>
+  <text x="246" y="176" text-anchor="middle" font-size="12" fill="#8a97a8">ruby / kenten</text>
+  <text x="408" y="176" text-anchor="middle" font-size="12" fill="#8a97a8">shiki / katex</text>
+</svg>

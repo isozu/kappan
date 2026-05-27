@@ -1,0 +1,40 @@
+{
+  "name": "@kappan/themes-hibana",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Kappan Hibana theme (火花): for manuals and how-to guides (M2-B)",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./assets/*": "./assets/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@kappan/core": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "license": "MIT",
+  "keywords": [
+    "kappan"
+  ],
+  "author": "isozu",
+  "homepage": "https://github.com/isozu/kappan#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isozu/kappan.git",
+    "directory": "packages/themes-hibana"
+  },
+  "bugs": {
+    "url": "https://github.com/isozu/kappan/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

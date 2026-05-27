@@ -1,0 +1,8 @@
+bookname: real-world-book
+booktitle: 実書籍風サンプル
+aut: ["技術書典執筆者"]
+language: ja
+publisher: 同人出版
+date: 2026-05-26
+stylesheet: custom.css
+toc_depth: 3

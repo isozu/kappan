@@ -1,0 +1,7 @@
+PREDEF:
+  - preface.re
+CHAPS:
+  - chap01.re
+  - chap02.re
+POSTDEF:
+  - colophon.re

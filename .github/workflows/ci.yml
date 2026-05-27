@@ -1,0 +1,290 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # M2-C: 週次 ACE 検証ジョブを走らせるための schedule。
+  # JST 火曜 09:00 = UTC 月曜 00:00 を目安に。
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Test with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage (lcov)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 30
+
+  epubcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache EPUBCheck
+        uses: actions/cache@v4
+        with:
+          path: ~/.kappan/tools/epubcheck
+          key: epubcheck-5.2.1
+
+      - name: Fetch EPUBCheck
+        run: pnpm epubcheck:fetch
+
+      - name: Build minimal fixture with validation
+        run: pnpm kappan build --config tests/fixtures/minimal-commonmark/kappan.config.ts --validate
+
+  migrate-roundtrip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache EPUBCheck
+        uses: actions/cache@v4
+        with:
+          path: ~/.kappan/tools/epubcheck
+          key: epubcheck-5.2.1
+
+      - name: Fetch EPUBCheck
+        run: pnpm epubcheck:fetch
+
+      # 3 種 review-projects fixture を migrate → build → EPUBCheck で検証する。
+      # M1-C で添加された tests/fixtures/review-projects/{minimal,typical,real-world}-review/。
+      - name: Migrate and validate minimal-review
+        run: |
+          rm -rf .migrate-roundtrip/migrated-minimal
+          pnpm kappan migrate tests/fixtures/review-projects/minimal-review --out .migrate-roundtrip/migrated-minimal --force
+          pnpm kappan build --config .migrate-roundtrip/migrated-minimal/kappan.config.ts --validate
+
+      - name: Migrate and validate typical-review
+        run: |
+          rm -rf .migrate-roundtrip/migrated-typical
+          pnpm kappan migrate tests/fixtures/review-projects/typical-review --out .migrate-roundtrip/migrated-typical --force
+          pnpm kappan build --config .migrate-roundtrip/migrated-typical/kappan.config.ts --validate
+
+      - name: Migrate and validate real-world-review
+        run: |
+          rm -rf .migrate-roundtrip/migrated-real-world
+          pnpm kappan migrate tests/fixtures/review-projects/real-world-review --out .migrate-roundtrip/migrated-real-world --force
+          pnpm kappan build --config .migrate-roundtrip/migrated-real-world/kappan.config.ts --validate
+
+      - name: Upload migration reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-reports
+          path: |
+            .migrate-roundtrip/migrated-*/migration-report.md
+          if-no-files-found: warn
+
+  bench:
+    runs-on: macos-latest # RDD §11.5.3 一次基準環境
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run benchmark on PR head
+        run: pnpm bench --output bench-pr.json
+
+      - name: Checkout main
+        run: |
+          git fetch origin main
+          git checkout origin/main -- .
+
+      - name: Install dependencies (main)
+        run: pnpm install --frozen-lockfile
+
+      - name: Run benchmark on main
+        run: pnpm bench --output bench-main.json
+
+      - name: Compare and gate
+        run: pnpm bench:compare --baseline bench-main.json --candidate bench-pr.json
+
+      - name: Upload benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks
+          path: |
+            bench-pr.json
+            bench-main.json
+
+  publish-dryrun:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm -r build
+
+      - name: Dry-run publish
+        run: pnpm -r publish --dry-run --access public --no-git-checks
+
+  # M2-C: ACE by DAISY をフィクスチャに走らせる。
+  # PR では critical/serious=0 ゲートを強制し、weekly schedule では全 fixture を回して
+  # レポートを artifact 化する（運用時の trend 追跡用）。
+  ace:
+    runs-on: ubuntu-latest
+    # フィクスチャ全体に ACE を回すと時間がかかるため、push/schedule のみで実行。
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies (with optional ACE)
+        # @daisy/ace-core + @daisy/ace-axe-runner-puppeteer は @kappan/core の
+        # optionalDependencies。デフォルトの pnpm install で取得できなければ、
+        # ACE は AceNotInstalledError を投げる。CI では明示的に入れる。
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm add -D -w @daisy/ace-core@^1.4.6 @daisy/ace-axe-runner-puppeteer@^1.4.6 || true
+
+      - name: Install Chromium for ACE
+        # ace-axe-runner-puppeteer は Chromium を起動して axe-core の DOM 検査を
+        # 走らせる。runner に Chromium が無いと AceNotInstalledError ではなく
+        # 「Could not find Chrome」内部エラーで ACE が落ちるため、明示的に入れる。
+        run: npx puppeteer browsers install chrome
+
+      - name: Set up Java for EPUBCheck
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache EPUBCheck
+        uses: actions/cache@v4
+        with:
+          path: ~/.kappan/tools/epubcheck
+          key: epubcheck-5.2.1
+
+      - name: Fetch EPUBCheck
+        run: pnpm epubcheck:fetch
+
+      # 3 種 fixture に対して build + EPUBCheck + ACE --strict を回す。
+      # PR では critical/serious=0 を強制（schedule 時も同様）。
+      - name: ACE strict — tech-book-yokogumi
+        run: |
+          pnpm kappan build \
+            --config tests/fixtures/tech-book-yokogumi/kappan.config.ts \
+            --validate --ace --ace-strict \
+            > /tmp/ace-tech-book-yokogumi.log 2>&1 || (cat /tmp/ace-tech-book-yokogumi.log; exit 1)
+          cat /tmp/ace-tech-book-yokogumi.log
+
+      - name: ACE strict — minimal-commonmark
+        run: |
+          pnpm kappan build \
+            --config tests/fixtures/minimal-commonmark/kappan.config.ts \
+            --validate --ace --ace-strict \
+            > /tmp/ace-minimal-commonmark.log 2>&1 || (cat /tmp/ace-minimal-commonmark.log; exit 1)
+          cat /tmp/ace-minimal-commonmark.log
+
+      # migrated-real-world-review は migrate-review から生成する必要があるため、
+      # 先に migrate を走らせる。出力先はワークスペース配下（.migrate-roundtrip/）に
+      # 置くことで生成 config から @kappan/* が解決できる（/tmp だと node_modules 不在で
+      # 失敗するため）。M2-D 完了に伴い有効化（2026-05）。
+      - name: ACE strict — migrated-real-world-review
+        run: |
+          rm -rf .migrate-roundtrip/migrated-real-world
+          pnpm kappan migrate tests/fixtures/review-projects/real-world-review --out .migrate-roundtrip/migrated-real-world --force
+          pnpm kappan build \
+            --config .migrate-roundtrip/migrated-real-world/kappan.config.ts \
+            --validate --ace --ace-strict \
+            > /tmp/ace-migrated-real-world.log 2>&1 || (cat /tmp/ace-migrated-real-world.log; exit 1)
+          cat /tmp/ace-migrated-real-world.log
+
+      - name: Upload ACE logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ace-logs-${{ github.run_id }}
+          path: /tmp/ace-*.log
+          if-no-files-found: warn
+          retention-days: 30

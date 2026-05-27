@@ -1,0 +1,7 @@
+bookname: typical-book
+booktitle: 典型サンプル書籍
+aut: ["著者A", "著者B"]
+language: ja
+publisher: 活版書房
+date: 2026-05-26
+isbn: "978-4-12345-678-9"

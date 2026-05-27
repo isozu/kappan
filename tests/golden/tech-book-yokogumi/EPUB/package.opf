@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="ja" prefix="schema: http://schema.org/">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="pub-id">urn:uuid:00000000-0000-0000-0000-000000000000</dc:identifier>
+    <dc:title id="title-main">Tech Book Yokogumi</dc:title>
+    <meta refines="#title-main" property="title-type">main</meta>
+    <dc:title id="title-sub">Saiun テーマで作る横組み技術書サンプル</dc:title>
+    <meta refines="#title-sub" property="title-type">subtitle</meta>
+    <meta refines="#title-sub" property="display-seq">2</meta>
+    <dc:language>ja</dc:language>
+    <dc:creator id="creator-1">Kappan Team</dc:creator>
+    <meta refines="#creator-1" property="role" scheme="marc:relators">aut</meta>
+    <meta refines="#creator-1" property="file-as">Kappan Team</meta>
+    <dc:publisher>Kappan Sample Press</dc:publisher>
+    <dc:date>2026-01-01</dc:date>
+    <meta property="dcterms:modified">2026-01-01T00:00:00Z</meta>
+    <meta property="schema:accessibilityFeature">tableOfContents</meta>
+    <meta property="schema:accessibilityFeature">structuralNavigation</meta>
+    <meta property="schema:accessibilityFeature">alternativeText</meta>
+    <meta property="schema:accessibilityFeature">MathML</meta>
+    <meta property="schema:accessMode">textual</meta>
+    <meta property="schema:accessMode">visual</meta>
+    <meta property="schema:accessibilityHazard">none</meta>
+    <meta property="schema:accessibilitySummary">本書は次のアクセシビリティ機能を備えています：構造的ナビゲーション、目次、画像の代替テキスト、数式のMathML表現。</meta>
+  </metadata>
+  <manifest>
+    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+    <item id="ch00" href="content/ch00.xhtml" media-type="application/xhtml+xml"/>
+    <item id="ch01" href="content/ch01.xhtml" media-type="application/xhtml+xml"/>
+    <item id="ch02" href="content/ch02.xhtml" media-type="application/xhtml+xml" properties="mathml"/>
+    <item id="ch03" href="content/ch03.xhtml" media-type="application/xhtml+xml"/>
+    <item id="ch04" href="content/ch04.xhtml" media-type="application/xhtml+xml"/>
+    <item id="ch05" href="content/ch05.xhtml" media-type="application/xhtml+xml"/>
+    <item id="genindex" href="content/genindex.xhtml" media-type="application/xhtml+xml"/>
+    <item id="styles-reset-css" href="styles/reset.css" media-type="text/css"/>
+    <item id="styles-theme-css" href="styles/theme.css" media-type="text/css"/>
+    <item id="img-network-png" href="images/network.png" media-type="image/png"/>
+    <item id="img-architecture-png" href="images/architecture.png" media-type="image/png"/>
+    <item id="cover-image" href="images/cover.png" media-type="image/png" properties="cover-image"/>
+  </manifest>
+  <spine>
+    <itemref idref="ch00"/>
+    <itemref idref="ch01"/>
+    <itemref idref="ch02"/>
+    <itemref idref="ch03"/>
+    <itemref idref="ch04"/>
+    <itemref idref="ch05"/>
+    <itemref idref="genindex"/>
+  </spine>
+</package>

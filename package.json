@@ -1,0 +1,82 @@
+{
+  "name": "kappan",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Next-generation Markdown→EPUB converter focused on Japanese typography",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=20.18.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "test:update-golden": "UPDATE_GOLDEN=1 vitest run",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "kappan": "tsx packages/cli/src/bin.ts",
+    "epubcheck:fetch": "node tools/epubcheck/fetch.mjs",
+    "bench": "tsx tools/bench/run.ts",
+    "bench:compare": "tsx tools/bench/compare.ts",
+    "changeset": "changeset",
+    "version": "changeset version && pnpm install --lockfile-only",
+    "release": "pnpm build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.10",
+    "@kappan/core": "workspace:*",
+    "@kappan/epub-packager": "workspace:*",
+    "@kappan/migrate-review": "workspace:*",
+    "@kappan/plugin-figure-numbering": "workspace:*",
+    "@kappan/plugin-jp-index": "workspace:*",
+    "@kappan/plugin-kinsoku": "workspace:*",
+    "@kappan/plugin-reader-shim": "workspace:*",
+    "@kappan/plugin-review-compat": "workspace:*",
+    "@kappan/plugin-ruby-auto": "workspace:*",
+    "@kappan/plugin-tcy-smart": "workspace:*",
+    "@kappan/plugin-wahukon": "workspace:*",
+    "@kappan/plugin-yojijukugo": "workspace:*",
+    "@kappan/remark-jp": "workspace:*",
+    "@kappan/remark-tech": "workspace:*",
+    "@kappan/themes-hibana": "workspace:*",
+    "@kappan/themes-kohaku": "workspace:*",
+    "@kappan/themes-mono": "workspace:*",
+    "@kappan/themes-saiun": "workspace:*",
+    "@kappan/themes-sumi": "workspace:*",
+    "@types/node": "^22.10.0",
+    "@types/unzipper": "^0.10.10",
+    "@vitest/coverage-v8": "2.1.9",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "unzipper": "^0.12.3",
+    "vitest": "^2.1.5"
+  },
+  "author": "isozu",
+  "homepage": "https://github.com/isozu/kappan#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isozu/kappan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/isozu/kappan/issues"
+  },
+  "keywords": [
+    "epub",
+    "epub3",
+    "markdown",
+    "japanese",
+    "typography",
+    "vertical-writing",
+    "tategumi",
+    "ruby",
+    "accessibility",
+    "review-migration",
+    "kindle"
+  ]
+}

@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.epub
+.DS_Store
+*.log
+coverage/
+.vscode/
+.idea/
+bench-results/
+.migrate-roundtrip/
+# E2E テストがワークスペース配下に展開する一時プロジェクト
+.e2e-init-*/
+
+# Playwright MCP の一時スナップショット出力
+.playwright-mcp/
+
+# 著者の内部文書（要件定義書・書籍原稿）。公開しない。
+.private/
+.claude/

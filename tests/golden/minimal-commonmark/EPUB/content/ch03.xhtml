@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja" lang="ja"><head><meta charset="utf-8"></meta><title>第3章 コードと引用</title><link rel="stylesheet" type="text/css" href="../styles/theme.css"></link></head><body><h1>第3章 コードと引用</h1>
+<p>インラインコード <code>const x = 1;</code> を埋め込める。</p>
+<p>フェンス区切りのコードブロック：</p>
+<pre><code class="language-typescript">function greet(name: string): string {
+  return `こんにちは、${name}さん`;
+}
+</code></pre>
+<p>言語指定なしのフェンスブロックも有効である：</p>
+<pre><code>これは言語指定のないコードブロックである。
+</code></pre>
+<p>ブロック引用：</p>
+<blockquote>
+<p>これは引用文である。
+複数行にわたる引用も書ける。</p>
+</blockquote>
+<p>入れ子になった引用：</p>
+<blockquote>
+<p>外側の引用。</p>
+<blockquote>
+<p>内側の引用。</p>
+</blockquote>
+</blockquote>
+<p>引用内のリスト：</p>
+<blockquote>
+<ul>
+<li>引用内の項目1</li>
+<li>引用内の項目2</li>
+</ul>
+</blockquote></body></html>

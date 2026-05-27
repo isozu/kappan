@@ -1,0 +1,187 @@
+/*
+ * Kappan Mono Theme
+ *
+ * 装飾を最小化したベースライン。
+ * 本文は明朝、見出しはサンセリフ、コードは等幅。
+ * 余白はリフロー型読書体験を阻害しない範囲に抑える。
+ */
+
+@import url('reset.css');
+
+body {
+  font-family:
+    'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'Noto Serif JP',
+    'MS PMincho', serif;
+  font-size: 1em;
+  line-height: 1.8;
+  color: #1a1a1a;
+  padding: 1.5em 1em;
+}
+
+/* 見出しはサンセリフで本文との視覚的コントラストを作る */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', 'YuGothic',
+    sans-serif;
+  font-weight: bold;
+  line-height: 1.4;
+  margin: 1.5em 0 0.5em 0;
+}
+
+h1 {
+  font-size: 1.6em;
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 0.2em;
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 1.35em;
+  margin-top: 2em;
+}
+
+h3 {
+  font-size: 1.15em;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 1em;
+}
+
+p {
+  margin: 0 0 1em 0;
+  text-indent: 1em;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+/* 見出し直後の段落は1字下げを抑制（出版慣行） */
+h1 + p,
+h2 + p,
+h3 + p,
+h4 + p,
+h5 + p,
+h6 + p {
+  text-indent: 0;
+}
+
+/* リスト */
+ul,
+ol {
+  margin: 0.5em 0 1em 1.5em;
+  padding-left: 0.5em;
+}
+
+li {
+  margin-bottom: 0.3em;
+}
+
+/* リンク */
+a {
+  color: #1f3a5f;
+  text-decoration: underline;
+}
+
+/* 強調 */
+strong {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+del {
+  text-decoration: line-through;
+  color: #888;
+}
+
+/* コード */
+code {
+  font-family: 'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.92em;
+  background: #f5f5f5;
+  padding: 0.05em 0.3em;
+  border-radius: 0.2em;
+}
+
+pre {
+  background: #f5f5f5;
+  padding: 0.8em 1em;
+  margin: 1em 0;
+  overflow-x: auto;
+  border-radius: 0.3em;
+  line-height: 1.5;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.9em;
+}
+
+/* 引用 */
+blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid #888;
+  color: #444;
+  background: #fafafa;
+}
+
+blockquote p {
+  text-indent: 0;
+}
+
+/* 画像 */
+img {
+  display: block;
+  margin: 1em auto;
+}
+
+figure {
+  margin: 1em 0;
+  text-align: center;
+}
+
+figcaption {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 0.4em;
+}
+
+/* テーブル */
+table {
+  width: 100%;
+  margin: 1em 0;
+  font-size: 0.95em;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 0.4em 0.7em;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f0f0f0;
+  font-weight: bold;
+}
+
+/* 水平線 */
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 2em auto;
+  width: 50%;
+}

@@ -1,0 +1,40 @@
+{
+  "name": "@kappan/epub-packager",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "EPUB 3.3 OPF/NAV/ZIP packager",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "xmlbuilder2": "^3.1.1"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "typescript": "^5.6.3"
+  },
+  "license": "MIT",
+  "keywords": [
+    "kappan"
+  ],
+  "author": "isozu",
+  "homepage": "https://github.com/isozu/kappan#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isozu/kappan.git",
+    "directory": "packages/epub-packager"
+  },
+  "bugs": {
+    "url": "https://github.com/isozu/kappan/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

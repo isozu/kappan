@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1800" viewBox="0 0 1200 1800" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+  <rect width="1200" height="1800" fill="#1f3a5f"/>
+  <rect x="80" y="80" width="1040" height="1640" fill="none" stroke="#cfe0f5" stroke-width="3"/>
+  <text x="600" y="640" text-anchor="middle" font-size="96" font-weight="700" fill="#ffffff">Kappan で</text>
+  <text x="600" y="770" text-anchor="middle" font-size="96" font-weight="700" fill="#ffffff">技術書を書く</text>
+  <line x1="360" y1="850" x2="840" y2="850" stroke="#cfe0f5" stroke-width="2"/>
+  <text x="600" y="930" text-anchor="middle" font-size="44" fill="#cfe0f5">横組みテクニカルライティングの実践</text>
+  <text x="600" y="1560" text-anchor="middle" font-size="48" fill="#ffffff">海老原 涼介</text>
+  <text x="600" y="1640" text-anchor="middle" font-size="36" fill="#cfe0f5">活版書房</text>
+</svg>

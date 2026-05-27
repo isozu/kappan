@@ -1,0 +1,165 @@
+/*
+ * Kappan Kohaku Theme — Academic / Reference
+ *
+ * 設計：
+ *   - 本文：明朝（Noto Serif JP → IPAex 明朝 → 汎用 serif）
+ *   - 見出し：明朝太字
+ *   - 引用：左ボーダー琥珀色
+ *   - 参考文献・脚注：等幅
+ *   - 行間：1.55（学術書相当）
+ *   - 章番号：ローマ数字風の強調オプションあり（kohaku({ bigChapterNumber: true })）
+ */
+
+:root {
+  --kohaku-accent: #8a5a2b; /* 琥珀 */
+  --kohaku-bg: #fdfaf5;
+  --kohaku-fg: #1a1a1a;
+  --kohaku-muted: #6e655a;
+  --kohaku-line-height: 1.55;
+  --kohaku-rule: #d8c4a0;
+}
+
+body {
+  font-family: 'Noto Serif JP', 'IPAex 明朝', 'YuMincho', 'Hiragino Mincho ProN', serif;
+  color: var(--kohaku-fg);
+  background: var(--kohaku-bg);
+  line-height: var(--kohaku-line-height);
+  font-size: 1rem;
+  padding: 1.4em 1.6em;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Noto Serif JP', 'IPAex 明朝', 'YuMincho', 'Hiragino Mincho ProN', serif;
+  font-weight: 700;
+  color: var(--kohaku-accent);
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 1.9em;
+  margin: 2em 0 0.8em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--kohaku-rule);
+}
+
+h2 {
+  font-size: 1.45em;
+  margin: 1.8em 0 0.6em;
+}
+
+h3 {
+  font-size: 1.2em;
+  margin: 1.4em 0 0.5em;
+}
+
+p {
+  margin: 0 0 1em;
+  text-indent: 1em;
+}
+
+p + p {
+  text-indent: 1em;
+}
+
+/* 引用：左ボーダー琥珀色 */
+blockquote {
+  margin: 1em 0;
+  padding: 0.4em 1em;
+  border-left: 4px solid var(--kohaku-accent);
+  color: var(--kohaku-muted);
+  background: rgba(138, 90, 43, 0.04);
+  font-style: italic;
+}
+
+/* 参考文献・脚注は等幅 */
+aside[epub\:type='footnotes'],
+section.references {
+  font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  color: var(--kohaku-muted);
+  margin-top: 2.4em;
+  padding-top: 1em;
+  border-top: 1px solid var(--kohaku-rule);
+}
+
+aside[epub\:type='footnotes'] h2,
+section.references h2 {
+  font-family: 'Noto Serif JP', 'IPAex 明朝', serif;
+  font-size: 1.1em;
+}
+
+a[epub\:type='noteref'] {
+  text-decoration: none;
+  color: var(--kohaku-accent);
+}
+
+/* コードブロック：学術書での頻度は低いので控えめに */
+code,
+pre {
+  font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-size: 0.92em;
+}
+
+pre {
+  background: #f5ede0;
+  border: 1px solid var(--kohaku-rule);
+  border-radius: 4px;
+  padding: 0.8em 1em;
+  overflow-x: auto;
+  text-indent: 0;
+}
+
+code {
+  background: #f5ede0;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+pre > code {
+  background: none;
+  padding: 0;
+}
+
+/* 表 */
+table {
+  width: 100%;
+  margin: 1em 0;
+  font-size: 0.95em;
+}
+
+th,
+td {
+  border: 1px solid var(--kohaku-rule);
+  padding: 0.45em 0.7em;
+}
+
+th {
+  background: rgba(138, 90, 43, 0.08);
+  font-weight: 700;
+}
+
+/* リンク */
+a {
+  color: var(--kohaku-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+/* 索引（plugin-jp-index 連携） */
+nav[epub\:type='index'] {
+  font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  column-count: 2;
+  column-gap: 1.6em;
+}
+
+nav[epub\:type='index'] h2 {
+  font-family: 'Noto Serif JP', serif;
+  column-span: all;
+}

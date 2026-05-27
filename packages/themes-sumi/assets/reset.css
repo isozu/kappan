@@ -1,0 +1,37 @@
+/*
+ * Kappan Sumi Theme — Reset
+ */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+}
+
+body {
+  line-height: 1.8;
+}
+
+h1,
+h2,
+h3,
+p,
+blockquote,
+ul,
+ol,
+li,
+figure,
+hr {
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+ruby > rt {
+  font-size: 0.5em;
+}

@@ -1,0 +1,441 @@
+/*
+ * Kappan Saiun Theme（彩雲）
+ *
+ * 用途：技術書・実用書
+ * 特徴：明朝＋サンセリフ、青系アクセント、コードブロックは角丸グレー
+ * 情報密度と可読性のバランスを重視する
+ *
+ * カスタマイズしたい場合は CSS カスタムプロパティ（--saiun-*）を override する
+ * か、saiun({ accent, fontStack, codeTheme, additionalCss }) を使う。
+ */
+
+@import url('reset.css');
+
+:root {
+  --saiun-accent: #1f3a5f;
+  --saiun-accent-light: #4a6896;
+  --saiun-accent-soft: #e5edf5;
+  --saiun-text: #1a1a1a;
+  --saiun-muted: #5a5a5a;
+  --saiun-bg: #fafafa;
+  --saiun-code-bg: #f5f7fa;
+  --saiun-code-border: #e0e6ed;
+  --saiun-rule: #cdd5df;
+  --saiun-emphasis: #b03060;
+}
+
+body {
+  font-family:
+    'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'Noto Serif JP',
+    'MS PMincho', serif;
+  font-size: 1em;
+  line-height: 1.8;
+  color: var(--saiun-text);
+  padding: 2em 1.2em;
+}
+
+/* 見出し階層 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', 'YuGothic',
+    sans-serif;
+  font-weight: bold;
+  color: var(--saiun-accent);
+  line-height: 1.45;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+h1 {
+  font-size: 1.7em;
+  margin: 0 0 1em 0;
+  padding-bottom: 0.4em;
+  border-bottom: 3px double var(--saiun-accent);
+}
+
+h2 {
+  font-size: 1.35em;
+  margin: 2em 0 0.6em 0;
+  padding-left: 0.6em;
+  border-left: 4px solid var(--saiun-accent);
+}
+
+h3 {
+  font-size: 1.15em;
+  margin: 1.6em 0 0.5em 0;
+  color: var(--saiun-accent-light);
+}
+
+h4,
+h5,
+h6 {
+  font-size: 1em;
+  margin: 1.2em 0 0.4em 0;
+  color: var(--saiun-accent-light);
+}
+
+/* 段落
+ * text-justify: inter-word で単語境界のみに余白配分し、CJK 文字間の異常な字間広がりを防ぐ。 */
+p {
+  margin: 0 0 1em 0;
+  text-indent: 1em;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+h1 + p,
+h2 + p,
+h3 + p,
+h4 + p,
+h5 + p,
+h6 + p,
+blockquote + p,
+pre + p,
+figure + p {
+  text-indent: 0;
+}
+
+/* 強調 */
+strong {
+  font-weight: bold;
+  color: var(--saiun-accent);
+}
+
+em {
+  font-style: italic;
+}
+
+del {
+  text-decoration: line-through;
+  color: var(--saiun-muted);
+}
+
+/* 圏点（remark-jp 出力の <em class="kenten">） */
+em.kenten {
+  font-style: normal;
+  color: var(--saiun-emphasis);
+  text-emphasis: filled sesame;
+  -webkit-text-emphasis: filled sesame;
+  text-emphasis-color: var(--saiun-emphasis);
+  -webkit-text-emphasis-color: var(--saiun-emphasis);
+}
+
+/* 縦中横 */
+.tcy {
+  text-combine-upright: all;
+  -webkit-text-combine: horizontal;
+  -ms-text-combine-horizontal: all;
+}
+
+/* リスト */
+ul,
+ol {
+  margin: 0.6em 0 1.2em 1.8em;
+  padding-left: 0.3em;
+}
+
+li {
+  margin-bottom: 0.4em;
+}
+
+li > p {
+  text-indent: 0;
+  margin: 0.3em 0;
+}
+
+/* リンク */
+a {
+  color: var(--saiun-accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--saiun-accent-light);
+}
+
+a:hover {
+  border-bottom-color: var(--saiun-accent);
+  background: var(--saiun-accent-soft);
+}
+
+/* コード */
+code {
+  font-family: 'SF Mono', 'Menlo', 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+  background: var(--saiun-code-bg);
+  padding: 0.05em 0.4em;
+  border-radius: 0.2em;
+  border: 1px solid var(--saiun-code-border);
+}
+
+pre {
+  background: var(--saiun-code-bg);
+  padding: 0.9em 1.1em;
+  margin: 1em 0;
+  overflow-x: auto;
+  border-radius: 0.4em;
+  border: 1px solid var(--saiun-code-border);
+  line-height: 1.6;
+  font-size: 0.92em;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+}
+
+/* shiki が付ける pre.shiki は外枠を共有する */
+pre.shiki {
+  background-color: var(--saiun-code-bg) !important;
+}
+
+/* 引用 */
+blockquote {
+  margin: 1.2em 0;
+  padding: 0.6em 1.2em;
+  border-left: 4px solid var(--saiun-accent-light);
+  background: var(--saiun-bg);
+  color: var(--saiun-text);
+  font-size: 0.96em;
+}
+
+blockquote > p {
+  text-indent: 0;
+  margin: 0.3em 0;
+}
+
+/* 画像 */
+img {
+  display: block;
+  margin: 1.2em auto;
+  max-width: 100%;
+  height: auto;
+}
+
+figure {
+  margin: 1.2em 0;
+  text-align: center;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+figcaption {
+  font-size: 0.88em;
+  color: var(--saiun-muted);
+  margin-top: 0.5em;
+  font-family:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+}
+
+/* plugin-figure-numbering が出力する図表番号（alt 先頭の「図1.1」など）
+ * は <img alt> として保持されるため、本文中の参照リンク（<a>）と
+ * 揃えるアクセント色をリンク側に当てる。 */
+a[href*='#fig:'],
+a[href*='#tbl:'],
+a[href*='#lst:'] {
+  font-weight: bold;
+  color: var(--saiun-accent);
+  border-bottom-style: dotted;
+}
+
+/* テーブル */
+table {
+  width: 100%;
+  margin: 1.2em 0;
+  font-size: 0.95em;
+  border-top: 2px solid var(--saiun-accent);
+  border-bottom: 2px solid var(--saiun-accent);
+}
+
+th,
+td {
+  padding: 0.5em 0.8em;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--saiun-rule);
+}
+
+th {
+  background: var(--saiun-accent-soft);
+  font-weight: bold;
+  color: var(--saiun-accent);
+  font-family:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 水平線 */
+hr {
+  border: none;
+  border-top: 1px dashed var(--saiun-rule);
+  margin: 2.5em auto;
+  width: 60%;
+}
+
+/* ルビの細部調整 */
+ruby {
+  ruby-position: over;
+}
+
+ruby > rt {
+  font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  font-weight: normal;
+  color: var(--saiun-muted);
+}
+
+/* ============================================================
+ * 縦組み — body.kappan-vertical-rl のときだけ発火。
+ * 横組みビルドでは class が付かないため、ここから下の縦組みルールは無効
+ * （= 既存の横組み出力・golden に影響しない）。
+ * Saiun は技術書も縦組みで組めるよう writing-mode 本体宣言を備える。
+ * ============================================================ */
+
+body.kappan-vertical-rl {
+  writing-mode: vertical-rl;
+  -webkit-writing-mode: vertical-rl;
+  -epub-writing-mode: vertical-rl;
+  /* 英数字 1 字は正立、連続欧文は横倒し。縦中横は .tcy が別途制御 */
+  text-orientation: mixed;
+  -webkit-text-orientation: mixed;
+}
+
+/* コードブロックは縦組み中も横組みに固定 */
+body.kappan-vertical-rl pre,
+body.kappan-vertical-rl pre code {
+  writing-mode: horizontal-tb;
+  -webkit-writing-mode: horizontal-tb;
+  -epub-writing-mode: horizontal-tb;
+  text-orientation: mixed;
+  -webkit-text-orientation: mixed;
+}
+
+/* 縦組み時のルビ位置（親文字の右側）。標準 `over` は writing-mode 依存で
+ * vertical-rl では右側に出る（旧値 `right` は Chromium で脱落、Playwright 実測）。
+ * Blink では -webkit-ruby-position が標準の別名で `after`→`under`（左側）になるため、
+ * prefix を先に・標準を後に置き、Blink が標準値で上書きするようにする。 */
+body.kappan-vertical-rl ruby {
+  -webkit-ruby-position: after;
+  ruby-position: over;
+}
+
+/* 圏点：`over right`（2 値形式）で vertical-rl の右側に出る
+ * （単独 `right` は Chromium で脱落、Playwright 実測）。 */
+body.kappan-vertical-rl em.kenten {
+  -webkit-text-emphasis-position: over right;
+  text-emphasis-position: over right;
+}
+
+/* リーダー別 fallback（reader-shim の body.reader-<profile> 起点）。
+ * Kindle で @supports が不安定なため、@supports は使わず prefix 併記で解釈差を吸収する。 */
+body.reader-kindle.kappan-vertical-rl {
+  -epub-writing-mode: vertical-rl;
+}
+
+body.reader-kindle .tcy {
+  -webkit-text-combine: horizontal;
+}
+
+body.reader-apple.kappan-vertical-rl ruby {
+  -webkit-ruby-position: after;
+}
+
+body.reader-kobo.kappan-vertical-rl,
+body.reader-thorium.kappan-vertical-rl {
+  writing-mode: vertical-rl;
+  -webkit-writing-mode: vertical-rl;
+}
+
+/* GFM 脚注（ビルドが <aside epub:type="footnotes"> を出力する想定） */
+aside[epub\:type~='footnotes'],
+aside.footnotes,
+section.footnotes {
+  margin-top: 2.5em;
+  padding-top: 0.8em;
+  border-top: 1px solid var(--saiun-rule);
+  font-size: 0.88em;
+  color: var(--saiun-muted);
+}
+
+aside[epub\:type~='footnotes'] ol,
+aside.footnotes ol,
+section.footnotes ol {
+  margin: 0.5em 0 0 1.6em;
+}
+
+aside[epub\:type~='footnotes'] li,
+aside.footnotes li,
+section.footnotes li {
+  margin-bottom: 0.4em;
+}
+
+a[epub\:type~='noteref'],
+a.footnote-ref {
+  color: var(--saiun-accent);
+  font-size: 0.8em;
+  vertical-align: super;
+  line-height: 0;
+  border-bottom: none;
+  margin-left: 0.1em;
+}
+
+/* admonition（review-compat や remark-directive 出力） */
+.admonition,
+div.note,
+div.tip,
+div.warning,
+div.important,
+div.column {
+  margin: 1.2em 0;
+  padding: 0.8em 1.2em;
+  border-left: 4px solid var(--saiun-accent-light);
+  background: var(--saiun-bg);
+  border-radius: 0 0.3em 0.3em 0;
+}
+
+div.warning,
+.admonition.warning {
+  border-left-color: #b85c00;
+  background: #fff5e6;
+}
+
+div.tip,
+.admonition.tip {
+  border-left-color: #1f7a4f;
+  background: #ebf6f0;
+}
+
+.admonition-title {
+  font-weight: bold;
+  font-family:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+  margin-bottom: 0.3em;
+}
+
+/* 禁則処理（@kappan/plugin-kinsoku） */
+.kinsoku-no-break {
+  white-space: nowrap;
+}
+
+p.kinsoku,
+li.kinsoku,
+blockquote.kinsoku {
+  text-align: justify;
+  text-justify: inter-word;
+  line-break: strict;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+}
+
+/* saiun() user overrides */
+:root {
+  --saiun-accent: #1f3a5f;
+}

@@ -1,0 +1,5 @@
+# リーダー検証のスクリーンショット・判定結果は CI 出力（artifact 化）。コミットしない。
+# thorium-headless.ts が results/<fixture>/thorium/*.png を生成する。
+*
+!.gitignore
+!.gitkeep

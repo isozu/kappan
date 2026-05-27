@@ -1,0 +1,42 @@
+[
+  {
+    "path": "EPUB/content/index.xhtml",
+    "kind": "text",
+    "compressionMethod": "deflate"
+  },
+  {
+    "path": "EPUB/images/sample.png",
+    "kind": "binary",
+    "compressionMethod": "deflate"
+  },
+  {
+    "path": "EPUB/nav.xhtml",
+    "kind": "text",
+    "compressionMethod": "deflate"
+  },
+  {
+    "path": "EPUB/package.opf",
+    "kind": "text",
+    "compressionMethod": "deflate"
+  },
+  {
+    "path": "EPUB/styles/reset.css",
+    "kind": "text",
+    "compressionMethod": "deflate"
+  },
+  {
+    "path": "EPUB/styles/theme.css",
+    "kind": "text",
+    "compressionMethod": "deflate"
+  },
+  {
+    "path": "META-INF/container.xml",
+    "kind": "text",
+    "compressionMethod": "deflate"
+  },
+  {
+    "path": "mimetype",
+    "kind": "text",
+    "compressionMethod": "store"
+  }
+]

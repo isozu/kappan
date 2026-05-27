@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja" lang="ja"><head><meta charset="utf-8"></meta><title>脚注と HTML 埋め込み</title><link rel="stylesheet" type="text/css" href="../styles/theme.css"></link></head><body><h1>脚注と HTML 埋め込み</h1>
+<p>この章では GFM の脚注記法<sup><a href="#user-content-fn-a" id="user-content-fnref-a" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">1</a></sup>と、<code>unsafeHtml: 'sanitized'</code> 経由で許可された HTML 埋め込みを検証する。</p>
+<p>脚注は本文中の小さな番号として現れ<sup><a href="#user-content-fn-b" id="user-content-fnref-b" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">2</a></sup>、巻末（章末）にリストとして列挙される。EPUB リーダーはこれをポップアップ表示する。</p>
+<h2>HTML 埋め込み</h2>
+<p>下記は Markdown 中に直接書いた HTML ブロック。<code>sanitized</code> モードでは安全な要素のみが通る。</p>
+<div>
+これは補足のメモです。
+</div>
+<h2>画像</h2>
+<p><img src="../images/sample.png" alt="サンプル画像の代替テキスト"/></p>
+<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>
+<ol>
+<li id="user-content-fn-a" epub:type="footnote">
+<p>1 つ目の脚注本文。脚注は段落として整形される。 <a href="#user-content-fnref-a" data-footnote-backref="data-footnote-backref" aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-b" epub:type="footnote">
+<p>2 つ目の脚注。EPUB の <code>epub:type="footnote"</code> 属性が付与される。 <a href="#user-content-fnref-b" data-footnote-backref="data-footnote-backref" aria-label="Back to reference 2" class="data-footnote-backref">↩</a></p>
+</li>
+</ol>
+</aside></body></html>
