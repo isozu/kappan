@@ -7,15 +7,17 @@
  *   - 平均値・標準偏差・min/max/p95 を副指標
  *   - 環境要因による外れ値を IQR の 1.5 倍ルールで除外
  *   - Welch's t-test を用いて p 値 0.05 以下で警告
- *   - 累積で 15% 以上劣化した時点で、単発計測 5% 未満でも回帰扱い
+ *   - FAIL は「median 15% 以上の劣化」かつ「統計的有意（p<0.05）」の両方を要求する。
+ *     効果量だけ大きく有意でないもの（極小ベンチの run-to-run ノイズ）は WARN に留め、
+ *     CI をブロックしない。
  *
  * 用法:
  *   tsx tools/bench/compare.ts --baseline bench-main.json --candidate bench-pr.json
  *
  * 出力:
  *   - PASS: 統計的有意な劣化なし
- *   - WARN: median 5% 以上劣化 or p < 0.05（exit 0、CI コメント想定）
- *   - FAIL: median 15% 以上累積劣化 or p < 0.01（exit 1）
+ *   - WARN: median 5% 以上劣化 / p < 0.05 / 有意でない大きな median 差（exit 0、CI コメント想定）
+ *   - FAIL: 有意な median 15% 以上劣化 or p < 0.01（exit 1）
  */
 
 import { readFile } from 'node:fs/promises';
@@ -166,15 +168,27 @@ async function main() {
   console.log(`  p-value     : ${tTest.pValue.toFixed(4)} (α=${args.alpha})`);
 
   // 判定
+  //
+  // median 由来の FAIL は「効果量（≥failThreshold）」と「統計的有意（p<alpha）」の両方を要求する。
+  // 極小ベンチ（小サンプル × 高分散）では同等コードでも median が 15% 以上振れることがあり、
+  // 効果量だけで FAIL にすると誤検知が頻発する。Welch's t-test の p 値でノイズと実回帰を分ける。
   let status: 'PASS' | 'WARN' | 'FAIL' = 'PASS';
   const reasons: string[] = [];
 
-  if (change >= args.failThreshold) {
+  if (change >= args.failThreshold && significant) {
     status = 'FAIL';
-    reasons.push(`median regression ${changePct}% ≥ ${(args.failThreshold * 100).toFixed(0)}%`);
+    reasons.push(
+      `median regression ${changePct}% ≥ ${(args.failThreshold * 100).toFixed(0)}% (p=${tTest.pValue.toFixed(4)})`,
+    );
   } else if (significant && change > 0 && tTest.pValue < args.alpha / 5) {
     status = 'FAIL';
     reasons.push(`statistically significant regression (p=${tTest.pValue.toFixed(4)})`);
+  } else if (change >= args.failThreshold) {
+    // 効果量は大きいが有意でない（ノイズの可能性が高い）→ ブロックせず警告に留める
+    status = 'WARN';
+    reasons.push(
+      `median regression ${changePct}% ≥ ${(args.failThreshold * 100).toFixed(0)}% but not statistically significant (p=${tTest.pValue.toFixed(4)})`,
+    );
   } else if (change >= args.warnThreshold) {
     status = 'WARN';
     reasons.push(`median regression ${changePct}% ≥ ${(args.warnThreshold * 100).toFixed(0)}%`);
