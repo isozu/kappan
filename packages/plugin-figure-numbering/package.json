@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-figure-numbering",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Auto-number figures, tables, listings, sections, equations, and chapters; resolve cross-chapter [@kind:id] references",
   "main": "./src/index.ts",

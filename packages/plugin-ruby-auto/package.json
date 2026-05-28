@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-ruby-auto",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Auto-ruby for difficult kanji via optional kuromoji.js (M2-B)",
   "main": "./src/index.ts",

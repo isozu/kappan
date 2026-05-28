@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-kinsoku",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "JLReq-compliant Japanese line-breaking (kinsoku) for Kappan",
   "main": "./src/index.ts",
