@@ -1,6 +1,6 @@
 {
   "name": "@kappan/themes-kohaku",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Kappan Kohaku theme (琥珀): for academic and reference books (M2-B)",
   "main": "./src/index.ts",

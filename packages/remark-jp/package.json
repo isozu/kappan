@@ -1,6 +1,6 @@
 {
   "name": "@kappan/remark-jp",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Japanese typography extensions for Kappan: ruby, kenten, tcy (M1)",
   "main": "./src/index.ts",
