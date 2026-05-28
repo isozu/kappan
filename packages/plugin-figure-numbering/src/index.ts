@@ -175,29 +175,43 @@ export const figureNumbering = definePlugin<FigureNumberingOptions>({
 });
 
 /**
- * tree から章番号を推定する。
+ * tree から章番号を推定する。プラグインは frontmatter を直接受け取れないため、
+ * 章番号は h1 のテキストから推定する。
  *
  * 優先順：
- *   1. front-matter の chapterNumber は collectChapters で frontmatter から拾えないため
- *      ここでは h1 の数字（"第3章 タイトル" の "3"）を見る
- *   2. h1 のテキスト先頭の "第N章" / "Chapter N"
- *   3. 章 ID の先頭数字（ch01 → 1）
+ *   1. h1 の "第N章" / "Chapter N"（最も意図が明確）
+ *   2. 章 ID マーカー `{#chXX}` の先頭数字（`# はじめに {#ch00}` → 0、`{#ch01}` → 1）。
+ *      タイトル本文に偶発的な数字（例: "5つの理由"）があると、後段の「任意の数字」rule
+ *      が拾ってしまうため、ID マーカーを先に見て確実性を上げる。
+ *   3. ID マーカー以外に出現する任意の数字（後方互換）
  *   4. fallback 1
+ *
+ * 注：英字のみの ID（`{#preface}` 等）は step 2 がスキップされ step 4 で 1 に落ちる。
+ * 同一ブック内に `{#ch01}` と `{#preface}` が共存すると番号衝突が起きる（図1.1 が
+ * 両章で発生）ため、章 ID は数字を含む `ch00` / `ch01` 形式で揃える運用を推奨する。
  */
 function inferChapterNumber(tree: MdastRoot): number {
   // h1 を探す
   for (const child of tree.children) {
     if (child.type === 'heading' && child.depth === 1) {
       const text = collectText(child.children);
-      // "第3章" / "Chapter 3" の数字を最優先
+      // 1. "第3章" / "Chapter 3" を最優先
       const ch = text.match(/第\s*(\d+)\s*章|Chapter\s*(\d+)/i);
       if (ch) {
         return Number.parseInt(ch[1] ?? ch[2]!, 10);
       }
-      const any = text.match(/(\d+)/);
+      // 2. 章 ID マーカー `{#chXX}` の先頭数字（ch01 → 1、ch00 → 0）
+      const idMatch = text.match(/\{#[a-zA-Z]+(\d+)/);
+      if (idMatch) {
+        return Number.parseInt(idMatch[1]!, 10);
+      }
+      // 3. ID マーカー以外に出現する任意の数字
+      const stripped = text.replace(/\{#[a-zA-Z0-9_-]+\}/g, '');
+      const any = stripped.match(/(\d+)/);
       if (any) return Number.parseInt(any[1]!, 10);
     }
   }
+  // 4. fallback
   return 1;
 }
 

@@ -400,4 +400,70 @@ describe('figureNumbering plugin', () => {
     expect(fig.children[0]?.alt).toBe('a');
     expect(fig.children[1]?.children?.[0]?.value).toBe('図5.1: a');
   });
+
+  it('derives chapter number from {#chXX} when the title has no "第N章"', async () => {
+    // `# はじめに {#ch00}` のような序章で章番号 0 を使う運用を支える。
+    const plugin = figureNumbering();
+    const tree: MdastRoot = {
+      type: 'root',
+      children: [
+        { type: 'heading', depth: 1, children: [{ type: 'text', value: 'はじめに {#ch00}' }] },
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'image', url: 'p.png', alt: '序章図', title: null },
+            { type: 'text', value: '{#fig:prelude}' },
+          ],
+        },
+      ],
+    };
+    await plugin.hooks.onMdast?.(tree, stubCtx);
+    const h1 = tree.children[0] as Loose;
+    expect(h1.children[0]?.value).toBe('はじめに');
+    const fig = tree.children[1] as Loose;
+    expect(fig.children[1]?.children?.[0]?.value).toBe('図0.1: 序章図');
+  });
+
+  it('prefers {#chXX} over an incidental digit in the title', async () => {
+    // タイトル中の偶発的な数字（"5つの理由"）に引っ張られて章番号 5 にならないこと。
+    const plugin = figureNumbering();
+    const tree: MdastRoot = {
+      type: 'root',
+      children: [
+        { type: 'heading', depth: 1, children: [{ type: 'text', value: '5つの理由 {#ch01}' }] },
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'image', url: 'r.png', alt: '根拠', title: null },
+            { type: 'text', value: '{#fig:reason}' },
+          ],
+        },
+      ],
+    };
+    await plugin.hooks.onMdast?.(tree, stubCtx);
+    const fig = tree.children[1] as Loose;
+    expect(fig.children[1]?.children?.[0]?.value).toBe('図1.1: 根拠');
+  });
+
+  it('falls back to chapter 1 when {#chXX} marker has no digits', async () => {
+    // `{#preface}` 等の英字のみ ID は step 2 をスキップして fallback で 1 になる。
+    // 章 ID 命名規約として `ch00` / `ch01` を推奨する根拠（README 参照）。
+    const plugin = figureNumbering();
+    const tree: MdastRoot = {
+      type: 'root',
+      children: [
+        { type: 'heading', depth: 1, children: [{ type: 'text', value: 'Foreword {#preface}' }] },
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'image', url: 'f.png', alt: 'foreword', title: null },
+            { type: 'text', value: '{#fig:f}' },
+          ],
+        },
+      ],
+    };
+    await plugin.hooks.onMdast?.(tree, stubCtx);
+    const fig = tree.children[1] as Loose;
+    expect(fig.children[1]?.children?.[0]?.value).toBe('図1.1: foreword');
+  });
 });
