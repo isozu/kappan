@@ -10,6 +10,8 @@
 <li class="kinsoku">スループッ<span class="kinsoku-no-break">ト：</span>単位時間あたりの処理量</li>
 <li class="kinsoku">同時実行<span class="kinsoku-no-break">性：</span>並行リクエスト数</li>
 </ul>
+<figure class="table-figure" id="tbl-perf-budget">
+<figcaption>表5.1: パフォーマンス予算の例</figcaption>
 <table>
 <thead>
 <tr>
@@ -36,10 +38,13 @@
 </tr>
 </tbody>
 </table>
-<p class="kinsoku">表5.1<span class="kinsoku-no-break">（[</span>@tbl:perf-budget<span class="kinsoku-no-break">]）</span>はあくまで一例であ<span class="kinsoku-no-break">り、</span>サービス特性に応じて
+</figure>
+<p class="kinsoku"><a href="#tbl-perf-budget" class="kappan-xref">表5.1</a>はあくまで一例であ<span class="kinsoku-no-break">り、</span>サービス特性に応じて
 チューニングが必要<span class="kinsoku-no-break">だ。</span></p>
 <h2>5.2 計測の罠</h2>
 <p class="kinsoku">計測手段にもバイアスがあ<span class="kinsoku-no-break">る。</span></p>
+<figure class="code-figure" id="lst-bench-clock">
+<figcaption>リスト5.1: クロックの選び方</figcaption>
 <pre><code class="language-typescript">// ❌ ローカルクロックの観測誤差を含む
 const t0 = Date.now();
 await fn();
@@ -50,7 +55,8 @@ const t0 = performance.now();
 await fn();
 const elapsed = performance.now() - t0;
 </code></pre>
-<p class="kinsoku">リスト5.1<span class="kinsoku-no-break">（[</span>@lst:bench-clock<span class="kinsoku-no-break">]）</span>の通<span class="kinsoku-no-break">り、</span><code>Date.now()</code> はシステムクロック調整の
+</figure>
+<p class="kinsoku"><a href="#lst-bench-clock" class="kappan-xref">リスト5.1</a>の通<span class="kinsoku-no-break">り、</span><code>Date.now()</code> はシステムクロック調整の
 影響を受けるためベンチには向かない<sup><a href="#user-content-fn-ch5-clock" id="user-content-fnref-ch5-clock" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">1</a></sup>。</p>
 <h2>5.3 セキュリティの最低限</h2>
 <p class="kinsoku">セキュリティは<span class="kinsoku-no-break">「や</span>らないと存在しな<span class="kinsoku-no-break">い」</span>性質を持<span class="kinsoku-no-break">つ。</span>最低限の確認項目を挙げ<span class="kinsoku-no-break">る。</span></p>
@@ -61,10 +67,12 @@ const elapsed = performance.now() - t0;
 <li class="kinsoku">ログの機微情<span class="kinsoku-no-break">報：</span>トーク<span class="kinsoku-no-break">ン、</span>パスワー<span class="kinsoku-no-break">ド、</span>PII を出力しない</li>
 <li class="kinsoku">依存ライブラリの更<span class="kinsoku-no-break">新：</span>CVE 監視を組み込む</li>
 </ol>
-<figure><img src="../images/architecture.png" alt="セキュリティ多層防御の概念図"/><figcaption>図5.1: セキュリティ多層防御の概念図</figcaption></figure>
-<p class="kinsoku">図5.1に示した<span class="kinsoku-no-break">「多</span>層防<span class="kinsoku-no-break">御」</span><span class="kinsoku-no-break">は、</span>単一の対策に依存しない設計の基本であ<span class="kinsoku-no-break">る。</span></p>
+<figure id="fig-defense"><img src="../images/architecture.png" alt="セキュリティ多層防御の概念図"/><figcaption>図5.1: セキュリティ多層防御の概念図</figcaption></figure>
+<p class="kinsoku"><a href="#fig-defense" class="kappan-xref">図5.1</a>に示した<span class="kinsoku-no-break">「多</span>層防<span class="kinsoku-no-break">御」</span><span class="kinsoku-no-break">は、</span>単一の対策に依存しない設計の基本であ<span class="kinsoku-no-break">る。</span></p>
 <h2>5.4 監査ログの設計</h2>
 <p class="kinsoku">監査ログは事後対応のために必須であ<span class="kinsoku-no-break">る。</span></p>
+<figure class="code-figure" id="lst-audit-event">
+<figcaption>リスト5.2: 監査イベントの最小スキーマ</figcaption>
 <pre><code class="language-typescript">interface AuditEvent {
   actor: { id: string; type: 'user' | 'service' };
   action: string;
@@ -74,7 +82,8 @@ const elapsed = performance.now() - t0;
   context?: Record&#x3C;string, unknown>;
 }
 </code></pre>
-<p class="kinsoku">リスト5.2<span class="kinsoku-no-break">（[</span>@lst:audit-event<span class="kinsoku-no-break">]）</span>は監査イベントの最小スキーマであ<span class="kinsoku-no-break">る。</span>
+</figure>
+<p class="kinsoku"><a href="#lst-audit-event" class="kappan-xref">リスト5.2</a>は監査イベントの最小スキーマであ<span class="kinsoku-no-break">る。</span>
 <strong>改ざん不可能性</strong><span class="kinsoku-no-break">（a</span>ppend-onl<span class="kinsoku-no-break">y、</span>署名付<span class="kinsoku-no-break">き）</span>と<em class="kenten">長期保持</em>を意識す<span class="kinsoku-no-break">る。</span></p>
 <h2>5.5 おわりに</h2>
 <p class="kinsoku">本書で<span class="kinsoku-no-break">は、</span>ネットワーク基礎から分散システ<span class="kinsoku-no-break">ム、</span>プロトコル選<span class="kinsoku-no-break">定、</span>実装パター<span class="kinsoku-no-break">ン、</span>
