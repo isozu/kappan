@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja" lang="ja"><head><meta charset="utf-8"></meta><title>第1章 ネットワーク基礎</title><link rel="stylesheet" type="text/css" href="../styles/theme.css"></link></head><body><h1>第1章 ネットワーク基礎</h1>
 <p class="kinsoku">ネットワークは現代の<ruby>分散<rt>ぶんさん</rt></ruby>システムの土台であ<span class="kinsoku-no-break">る。</span>本章で<span class="kinsoku-no-break">は、</span>TCP/IP の <ruby>階層構造<rt>かいそうこうぞう</rt></ruby>と
 そこに乗る代表的なプロトコルについ<span class="kinsoku-no-break">て、</span>横組み技術書らしい密度で解説す<span class="kinsoku-no-break">る。</span></p>
-<h2>1.1 OSI 参照モデル</h2>
+<h2 id="sec-osi">1.1 OSI 参照モデル</h2>
 <p class="kinsoku"><span id="kappan-idx-1" class="index-term">OSI参照モデル</span>は 7 階層からな<span class="kinsoku-no-break">る。</span>各階層は独立した責務を持<span class="kinsoku-no-break">ち、</span>上位層は下位層の
 詳細を意識せずに通信でき<span class="kinsoku-no-break">る。</span>これを <strong>抽象化</strong> と呼<span class="kinsoku-no-break">び、</span>現代の<em class="kenten">ソフトウェア設計</em>に
 おける最重要原則のひとつ<span class="kinsoku-no-break">だ。</span></p>
-<figure><img src="../images/network.png" alt="ネットワーク階層の概念図"/><figcaption>図1.1: ネットワーク階層の概念図</figcaption></figure>
-<p class="kinsoku">図1.1に示すよう<span class="kinsoku-no-break">に、</span>各層は明確な役割を持<span class="kinsoku-no-break">つ。</span></p>
+<figure id="fig-layers"><img src="../images/network.png" alt="ネットワーク階層の概念図"/><figcaption>図1.1: ネットワーク階層の概念図</figcaption></figure>
+<p class="kinsoku"><a href="#fig-layers" class="kappan-xref">図1.1</a>に示すよう<span class="kinsoku-no-break">に、</span>各層は明確な役割を持<span class="kinsoku-no-break">つ。</span></p>
 <h3>階層ごとの役割</h3>
 <ol>
 <li class="kinsoku">物理<span class="kinsoku-no-break">層：</span>電気信号やパルスの物理的な伝送</li>

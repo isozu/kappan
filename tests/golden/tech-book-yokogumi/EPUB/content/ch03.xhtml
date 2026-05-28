@@ -9,6 +9,8 @@
 <li class="kinsoku">HTTP/<span class="kinsoku-no-break">2：</span>バイナリフレーミングと多重<span class="kinsoku-no-break">化。</span>1 接続で並列リクエスト</li>
 <li class="kinsoku">HTTP/<span class="kinsoku-no-break">3：</span>トランスポートを QUIC に置<span class="kinsoku-no-break">換。</span>ヘッドオブラインブロッキングを根絶</li>
 </ul>
+<figure class="table-figure" id="tbl-http-versions">
+<figcaption>表3.1: HTTP 世代の比較</figcaption>
 <table>
 <thead>
 <tr>
@@ -39,10 +41,13 @@
 </tr>
 </tbody>
 </table>
-<p class="kinsoku">[@tbl:http-versions<span class="kinsoku-no-break">]：</span>HTTP の世代比<span class="kinsoku-no-break">較。</span></p>
+</figure>
+<p class="kinsoku">各世代の違いは <a href="#tbl-http-versions" class="kappan-xref">表3.1</a> に整理し<span class="kinsoku-no-break">た。</span></p>
 <h2>3.2 gRPC</h2>
 <p class="kinsoku">gRPC は HTTP/2 上のバイナリ RPC プロトコルであ<span class="kinsoku-no-break">る。</span>Protocol Buffers を IDL として
 スキーマ駆動で API を定義す<span class="kinsoku-no-break">る。</span></p>
+<figure class="code-figure" id="lst-grpc-proto">
+<figcaption>リスト3.1: protobuf によるサービス定義</figcaption>
 <pre><code class="language-protobuf">service BookService {
   rpc GetBook(GetBookRequest) returns (Book);
   rpc ListBooks(ListBooksRequest) returns (stream Book);
@@ -54,11 +59,14 @@ message Book {
   repeated string authors = 3;
 }
 </code></pre>
-<p class="kinsoku">リスト3.1<span class="kinsoku-no-break">（[</span>@lst:grpc-proto<span class="kinsoku-no-break">]）</span>は典型的な protobuf 定<span class="kinsoku-no-break">義。</span></p>
+</figure>
+<p class="kinsoku"><a href="#lst-grpc-proto" class="kappan-xref">リスト3.1</a>は典型的な protobuf 定<span class="kinsoku-no-break">義。</span></p>
 <p class="kinsoku">サーバストリーミングと双方向ストリーミングが標準で扱えるた<span class="kinsoku-no-break">め、</span><em class="kenten">リアルタイム性</em>の
 要件があるシステムでは有力な選択肢になる<sup><a href="#user-content-fn-ch3-streaming" id="user-content-fnref-ch3-streaming" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">1</a></sup>。</p>
 <h2>3.3 WebSocket</h2>
 <p class="kinsoku">WebSocket は HTTP の Upgrade ハンドシェイク後に双方向の TCP コネクションを開<span class="kinsoku-no-break">く。</span></p>
+<figure class="code-figure" id="lst-websocket">
+<figcaption>リスト3.2: WebSocket クライアント</figcaption>
 <pre><code class="language-typescript">const ws = new WebSocket('wss://example.com/feed');
 ws.addEventListener('message', (e) => {
   const msg = JSON.parse(e.data);
@@ -66,7 +74,8 @@ ws.addEventListener('message', (e) => {
 });
 ws.send(JSON.stringify({ type: 'subscribe', channel: 'ticks' }));
 </code></pre>
-<p class="kinsoku">リスト3.2 のように API は単純<span class="kinsoku-no-break">で、</span>ブラウザ／Node 両方で同じ感覚で扱え<span class="kinsoku-no-break">る。</span></p>
+</figure>
+<p class="kinsoku"><a href="#lst-websocket" class="kappan-xref">リスト3.2</a> のように API は単純<span class="kinsoku-no-break">で、</span>ブラウザ／Node 両方で同じ感覚で扱え<span class="kinsoku-no-break">る。</span></p>
 <blockquote class="kinsoku">
 <p class="kinsoku">WebSocket は<span class="kinsoku-no-break">「常</span>時接<span class="kinsoku-no-break">続」</span>のためのプロトコルであ<span class="kinsoku-no-break">り、</span>リクエスト／レスポンスを
 モデル化したい場合は素直に HTTP を使う方がよ<span class="kinsoku-no-break">い。</span></p>

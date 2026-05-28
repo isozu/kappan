@@ -1,10 +1,13 @@
 import { definePlugin } from '@kappan/core';
+import type { PluginContext } from '@kappan/core';
 import type {
   Root as MdastRoot,
   Image,
   Text,
+  Link,
   Paragraph,
   RootContent,
+  PhrasingContent,
   Heading,
   Code,
   Table,
@@ -30,10 +33,8 @@ function makeFigcaption(text: string): Paragraph {
 }
 
 export interface FigureNumberingOptions {
-  /** 図番号のラベル形式。デフォルト 'jp'（図1.1）。'en' は Fig. 1.1 */
+  /** 番号ラベルの言語。デフォルト 'jp'（図1.1）。'en' は Fig. 1.1。 */
   readonly labelStyle?: 'jp' | 'en';
-  /** 章ごとに連番をリセットする（デフォルト true） */
-  readonly resetPerChapter?: boolean;
 }
 
 interface Labels {
@@ -65,25 +66,40 @@ const EN_LABELS: Labels = {
 type RefKind = 'fig' | 'tbl' | 'lst' | 'eq' | 'sec' | 'chap';
 
 /**
+ * 参照のアンカー id。本文の `[@fig:xref]` は `<a href="#fig-xref">` になり、
+ * 図表側 `<figure id="fig-xref">` へジャンプする。`<kind>-<id>` の形にすることで
+ * EPUBCheck が嫌うコロンを避けつつ、テーマ CSS（`.kappan-xref`）で一括装飾できる。
+ */
+function anchorId(kind: RefKind, id: string): string {
+  return `${kind}-${id}`;
+}
+
+/** mdast ノードに `data.hProperties.id` を（既存 data を保ったまま）設定する。 */
+function setAnchor(node: { data?: unknown }, id: string): void {
+  const n = node as { data?: { hProperties?: Record<string, unknown> } };
+  const data = (n.data ?? {}) as { hProperties?: Record<string, unknown> };
+  data.hProperties = { ...(data.hProperties ?? {}), id };
+  n.data = data;
+}
+
+/**
  * 1 章分の定義テーブル。`onMdast` 後の状態でキャッシュに保存し、
  * `onMdastAllChapters` フェーズで章をまたぐ参照を解決する。
  */
 interface ChapterDefs {
   readonly chapterNumber: number;
-  /** chapter ID（front-matter id か h1 から推定） */
+  /** chapter ID（front-matter id か h1 から推定）。章間リンクのファイル名になる。 */
   readonly chapterId: string | undefined;
-  /** 章タイトル（h1 のテキスト、参照テキスト生成に使う） */
-  readonly chapterTitle: string | undefined;
   /** 種別ごとの id → 番号文字列（"1.1" 等） */
   readonly idToNumber: Record<RefKind, Map<string, string>>;
 }
 
-const CACHE_KEY_DEFS = 'figure-numbering:all-defs';
 const CACHE_KEY_CHAP = 'figure-numbering:chapter-defs';
 
-interface ChapterDefsRecord {
-  readonly chapterNumber: number;
-  readonly defs: ChapterDefs;
+/** 参照解決の結果。`href` があれば `<a>`、無ければ素のテキストに置換する。 */
+interface ResolvedRef {
+  readonly label: string;
+  readonly href?: string;
 }
 
 /**
@@ -93,62 +109,65 @@ interface ChapterDefsRecord {
  * 拡張：
  *   - 種別を sec / eq / chap に拡張
  *   - 章をまたぐ参照を `onMdastAllChapters` で解決
+ *   - 参照（`[@kind:id]`）は番号付きラベルの**ハイパーリンク**になり、図表側の
+ *     アンカー（`<figure id="fig-id">` 等）へジャンプできる
  *   - 章番号は front-matter `id`（ch01）→ 1、h1 内の数字 → fallback、最後に出現順
  *
  * 参照記法（Pandoc-crossref 互換）：
  *   `![alt](path){#fig:id}` → 単独段落のブロック画像は
- *      `<figure><img/><figcaption>図1.1: alt</figcaption></figure>` に変換し、
+ *      `<figure id="fig-id"><img/><figcaption>図1.1: alt</figcaption></figure>` に変換し、
  *      番号付きキャプションを可視で出す（画像にプローズが続くインライン用法は
- *      従来どおり alt に番号を載せる）。
+ *      従来どおり alt に番号を載せ、`<img id="fig-id">` を付ける）。
  *   GFM テーブル ＋ 直前/直後の `{#tbl:id} キャプション` 段落 →
- *      `<figure><figcaption>表1.1: キャプション</figcaption><table>…</table></figure>`。
- *   `## タイトル {#sec:foo}` → `1.1`（heading に id 属性が付き、後で参照可）
- *   `$$..$$ {#eq:bar}` → `(1.1)`（コードブロック直後の `{#eq:id}` テキスト）
- *   `[@fig:foo]` / `[@sec:bar]` / `[@chap:baz]` → 「図1.1」「節1.1」「第3章」
+ *      `<figure id="tbl-id"><figcaption>表1.1: キャプション</figcaption><table>…</table></figure>`。
+ *   コードブロック ＋ 直前/直後の `{#lst:id} キャプション` 段落 →
+ *      `<figure class="code-figure" id="lst-id"><figcaption>リスト1.1: キャプション</figcaption><pre>…</pre></figure>`。
+ *   `## タイトル {#sec:foo}` → `1.1`（heading に `id="sec-foo"` が付き、後で参照可）
+ *   `$$..$$ {#eq:bar}` → `1.1`（コードブロック直後の `{#eq:id}` テキスト。直後段落に
+ *      `id="eq-bar"` を付け、参照リンクのジャンプ先にする）
+ *   `[@fig:foo]` / `[@sec:bar]` / `[@chap:baz]` → 「図1.1」「節1.1」「第3章」へのリンク
  */
 export const figureNumbering = definePlugin<FigureNumberingOptions>({
   name: '@kappan/plugin-figure-numbering',
-  version: '0.3.0',
+  version: '0.4.0',
   kind: 'transform',
   hooks: (options = {}) => {
     const labels: Labels = options.labelStyle === 'en' ? EN_LABELS : JP_LABELS;
     return {
       onMdast(tree: MdastRoot, ctx) {
-        // フェーズ 1：1 章分の定義を集めて番号を割り振る。同章内の参照は解決する。
+        // フェーズ 1：1 章分の定義を集めて番号を割り振り、同章内の参照を解決する。
         const chapterNumber = inferChapterNumber(tree);
         const chapterId = inferChapterId(tree);
-        const chapterTitle = extractFirstHeadingText(tree);
 
         // h1 から章 ID マーカー `{#chXX}` を取り除く（見出しに残さない）。
         stripChapterIdMarker(tree);
 
-        const defs = collectAndNumber(tree, chapterNumber, labels);
         const record: ChapterDefs = {
           chapterNumber,
           chapterId,
-          chapterTitle,
-          idToNumber: defs,
+          idToNumber: collectAndNumber(tree, chapterNumber, labels),
         };
 
-        // 同章の参照を解決する（chap は別関数で章間用に置換するため別パス）。
+        // 同章の参照をリンクに解決する（chap は別関数で章間用に置換するため別パス）。
         resolveSameChapterRefs(tree, record, labels);
 
         // キャッシュに章定義を蓄積（onMdastAllChapters で集めて参照解決）。
-        const existing = ctx.cache.get<readonly ChapterDefsRecord[]>(CACHE_KEY_CHAP) ?? [];
-        ctx.cache.set(CACHE_KEY_CHAP, [...existing, { chapterNumber, defs: record }]);
+        const existing = ctx.cache.get<readonly ChapterDefs[]>(CACHE_KEY_CHAP) ?? [];
+        ctx.cache.set(CACHE_KEY_CHAP, [...existing, record]);
       },
       onMdastAllChapters(trees, ctx) {
         // フェーズ 2：全章の定義を統合して、章をまたぐ参照を解決する。
-        const records = ctx.cache.get<readonly ChapterDefsRecord[]>(CACHE_KEY_CHAP) ?? [];
+        const records = ctx.cache.get<readonly ChapterDefs[]>(CACHE_KEY_CHAP) ?? [];
         const byChapterId = new Map<string, ChapterDefs>();
         for (const r of records) {
-          if (r.defs.chapterId) byChapterId.set(r.defs.chapterId, r.defs);
+          if (r.chapterId) byChapterId.set(r.chapterId, r);
         }
-        ctx.cache.set(CACHE_KEY_DEFS, byChapterId);
 
-        // 各章を巡回して、未解決のままだった `[@kind:id]` を解決する。
-        for (const { tree } of trees) {
+        // 各章を巡回して、未解決のままだった `[@kind:id]`（chap / 他章名前空間）を
+        // 解決し、それでも残る参照は警告する。
+        for (const { tree, path } of trees) {
           resolveCrossChapterRefs(tree, byChapterId, labels);
+          warnUnresolvedRefs(tree, path, ctx);
         }
       },
     };
@@ -188,6 +207,10 @@ function inferChapterNumber(tree: MdastRoot): number {
  * Kappan の collectChapters は front-matter `id` を別経路で扱うが、
  * プラグインは frontmatter を直接受け取らないため h1 の id 属性で代用する。
  * `# 第1章 {#ch01}` の形式を期待する。なければ undefined。
+ *
+ * 章間リンクの URL（`ch01.xhtml#fig-x`）はこの章 ID をファイル名に使う。出力ファイル名は
+ * front-matter `id`（= `content/<id>.xhtml`）なので、h1 の `{#chXX}` と front-matter `id`
+ * を一致させる運用を前提にする（showcase / docs の慣行どおり）。
  */
 function inferChapterId(tree: MdastRoot): string | undefined {
   for (const child of tree.children) {
@@ -216,17 +239,6 @@ function stripChapterIdMarker(tree: MdastRoot): void {
   }
 }
 
-function extractFirstHeadingText(tree: MdastRoot): string | undefined {
-  for (const child of tree.children) {
-    if (child.type === 'heading' && child.depth === 1) {
-      return collectText(child.children)
-        .replace(/\s*\{#[a-zA-Z0-9_-]+\}\s*$/, '')
-        .trim();
-    }
-  }
-  return undefined;
-}
-
 function collectText(
   nodes:
     | readonly RootContent[]
@@ -250,12 +262,14 @@ function collectText(
 }
 
 /**
- * mdast を 1 章分走査して、各種定義に番号を割り当てる。
+ * mdast を 1 章分走査して、各種定義に番号を割り当て、アンカーを付ける。
  *
  * 対応する記法：
  *   - 画像 `![alt](path){#fig:id}` / `{#tbl:id}` / `{#lst:id}`
  *   - 見出し `## title {#sec:id}`（h2 / h3 / h4 を section とみなす）
- *   - コード `code` ノードの直後 text `{#lst:id}`
+ *   - GFM テーブル ＋ 隣接キャプション段落 `… {#tbl:id}`
+ *   - コードブロック ＋ 隣接キャプション段落 `… {#lst:id}`（直後段落先頭の
+ *     `{#lst:id}` プレフィックスも後方互換で受け付ける）
  *   - 数式 — Markdown では math 拡張がないため、`$$..$$` をそのまま代用とし、
  *     その直後の段落先頭 `{#eq:id}` を拾う
  */
@@ -323,6 +337,7 @@ function collectAndNumber(
         if (isBlockImage) {
           imageNode.alt = desc;
           paragraph.data = { ...paragraph.data, hName: 'figure' };
+          if (id) setAnchor(paragraph, anchorId(kind, id));
           // figcaption は mdast 上は Paragraph だが hName で <figcaption> になる。
           // Paragraph.children は PhrasingContent[] のため、型を緩めて差し込む。
           paragraph.children = [
@@ -332,41 +347,29 @@ function collectAndNumber(
           break; // この段落は figure に確定したので走査終了
         }
         imageNode.alt = caption;
+        // インライン用法：画像自身にアンカーを付け、参照リンクのジャンプ先にする。
+        if (id) setAnchor(imageNode, anchorId(kind, id));
       }
     }
   });
 
   // GFM テーブルのキャプション採番。
   // テーブルの直前（推奨）または直後の段落が `{#tbl:id}` マーカーを持つとき、
-  // そのテーブルを `<figure>` でラップし「表N.N: キャプション」を figcaption に出す。
+  // そのテーブルを `<figure id="tbl-id">` でラップし「表N.N: キャプション」を figcaption に出す。
   // 画像形式の `{#tbl:id}` とは別経路だが、tblCounter を共有する（画像表 → GFM 表の順）。
-  interface TableAction {
+  interface BlockAction {
     readonly parent: Parent;
-    readonly table: Table;
+    readonly block: RootContent;
     readonly captionPara: Paragraph;
     readonly captionText: string;
     readonly id: string;
   }
-  const tableActions: TableAction[] = [];
+  const tableActions: BlockAction[] = [];
   visit(tree, 'table', (table: Table, index, parent) => {
     if (!parent || typeof index !== 'number') return;
-    for (const pos of [index - 1, index + 1]) {
-      const sib = parent.children[pos];
-      if (!sib || sib.type !== 'paragraph') continue;
-      const text = collectText(sib.children);
-      const m = text.match(
-        /^\s*(?:表|Table)?\s*[:：]?\s*([\s\S]*?)\s*\{#tbl:([a-zA-Z0-9_-]+)\}\s*$/,
-      );
-      if (m) {
-        tableActions.push({
-          parent: parent as Parent,
-          table,
-          captionPara: sib as Paragraph,
-          captionText: (m[1] ?? '').trim(),
-          id: m[2]!,
-        });
-        break;
-      }
+    const hit = findCaptionSibling(parent, index, 'tbl');
+    if (hit) {
+      tableActions.push({ parent: parent as Parent, block: table, ...hit });
     }
   });
   for (const act of tableActions) {
@@ -381,15 +384,62 @@ function collectAndNumber(
     // figure 内は [figcaption, table]（表のキャプションは上に置くのが慣行）。
     const figureNode: Blockquote = {
       type: 'blockquote',
-      data: { hName: 'figure', hProperties: { className: ['table-figure'] } },
-      children: [makeFigcaption(captionText), act.table],
+      data: {
+        hName: 'figure',
+        hProperties: { className: ['table-figure'], id: anchorId('tbl', act.id) },
+      },
+      children: [makeFigcaption(captionText), act.block as Table],
     };
-    const ch = act.parent.children as RootContent[];
-    const ti = ch.indexOf(act.table);
-    if (ti === -1) continue;
-    ch[ti] = figureNode;
-    const ci = ch.indexOf(act.captionPara);
-    if (ci !== -1) ch.splice(ci, 1);
+    replaceBlockWithFigure(act.parent, act.block, act.captionPara, figureNode);
+  }
+
+  // コードブロックのキャプション採番（表と同じ要領）。
+  // コードの直前/直後の段落が `{#lst:id}` を持てば `<figure class="code-figure">` で
+  // ラップし「リストN.N: キャプション」を figcaption に出す。隣接キャプションが無くても
+  // 直後段落の**先頭**に `{#lst:id}` があれば（後方互換）、番号とアンカーだけ付ける。
+  const listActions: Array<BlockAction | { legacy: Code; id: string; parent: Parent }> = [];
+  visit(tree, 'code', (code: Code, index, parent) => {
+    if (!parent || typeof index !== 'number') return;
+    const hit = findCaptionSibling(parent, index, 'lst');
+    if (hit) {
+      listActions.push({ parent: parent as Parent, block: code, ...hit });
+      return;
+    }
+    // 後方互換：直後段落の先頭プレフィックス `{#lst:id}`
+    const next = parent.children[index + 1];
+    if (next && next.type === 'paragraph') {
+      const first = next.children[0];
+      if (first && first.type === 'text') {
+        const m = first.value.match(/^\{#lst:([a-zA-Z0-9_-]+)\}\s*/);
+        if (m) {
+          first.value = first.value.slice(m[0].length);
+          listActions.push({ legacy: code, id: m[1]!, parent: parent as Parent });
+        }
+      }
+    }
+  });
+  for (const act of listActions) {
+    lstCounter += 1;
+    const number = `${chapterNum}.${lstCounter}`;
+    if ('legacy' in act) {
+      idMap.lst.set(act.id, number);
+      setAnchor(act.legacy, anchorId('lst', act.id));
+      continue;
+    }
+    idMap.lst.set(act.id, number);
+    const label = labels.lst;
+    const captionText = act.captionText
+      ? `${label}${number}: ${act.captionText}`
+      : `${label}${number}`;
+    const figureNode: Blockquote = {
+      type: 'blockquote',
+      data: {
+        hName: 'figure',
+        hProperties: { className: ['code-figure'], id: anchorId('lst', act.id) },
+      },
+      children: [makeFigcaption(captionText), act.block as Code],
+    };
+    replaceBlockWithFigure(act.parent, act.block, act.captionPara, figureNode);
   }
 
   // 見出し（h2 / h3 / h4）の `{#sec:id}` を section とみなす
@@ -404,31 +454,15 @@ function collectAndNumber(
         const number = `${chapterNum}.${secCounter}`;
         idMap.sec.set(m[1]!, number);
         last.value = last.value.slice(0, m.index!).replace(/\s+$/, '');
+        setAnchor(heading, anchorId('sec', m[1]!));
       }
-    }
-  });
-
-  // コードブロック `code` の直後の段落先頭 `{#lst:id}` をリストとして認識
-  visit(tree, 'code', (code: Code, index, parent) => {
-    if (!parent || typeof index !== 'number') return;
-    const next = parent.children[index + 1];
-    if (!next || next.type !== 'paragraph') return;
-    const first = next.children[0];
-    if (!first || first.type !== 'text') return;
-    const m = first.value.match(/^\{#lst:([a-zA-Z0-9_-]+)\}\s*/);
-    if (m) {
-      lstCounter += 1;
-      const number = `${chapterNum}.${lstCounter}`;
-      idMap.lst.set(m[1]!, number);
-      first.value = first.value.slice(m[0].length);
-      // alt 相当の caption は code には無いので、ここでは抽出のみで本文書き換えはしない
-      void code;
     }
   });
 
   // 数式 `$$..$$` を Markdown としては math 拡張無しで扱えないため、
   // パターンとしては「段落の中身が `$$...$$` のみのテキスト」を eq として扱い、
-  // 直後の段落先頭 `{#eq:id}` を割り当てる
+  // 直後の段落先頭 `{#eq:id}` を割り当てる。アンカーは直後段落に付け、参照リンクの
+  // ジャンプ先（数式の直下）にする。
   visit(tree, 'paragraph', (paragraph: Paragraph, index, parent) => {
     if (!parent || typeof index !== 'number') return;
     if (paragraph.children.length !== 1) return;
@@ -446,6 +480,7 @@ function collectAndNumber(
       const number = `${chapterNum}.${eqCounter}`;
       idMap.eq.set(m[1]!, number);
       first.value = first.value.slice(m[0].length);
+      setAnchor(next, anchorId('eq', m[1]!));
     }
   });
 
@@ -453,64 +488,188 @@ function collectAndNumber(
 }
 
 /**
- * 同一章内の `[@fig:id]` `[@tbl:id]` `[@lst:id]` `[@sec:id]` `[@eq:id]` を解決する。
- * `[@chap:id]` は他章を指す前提で `onMdastAllChapters` で解決する。
+ * ブロック（table / code）の直前または直後の段落が `{#kind:id}` キャプションなら
+ * その情報を返す。キャプション段落は「丸ごと」マーカーで終わる段落に限る
+ * （本文プローズを巻き込まないため）。直前を優先する（キャプションは上に置く慣行）。
+ */
+function findCaptionSibling(
+  parent: Parent,
+  index: number,
+  kind: 'tbl' | 'lst',
+): { captionPara: Paragraph; captionText: string; id: string } | undefined {
+  const labelAlt = kind === 'tbl' ? '表|Table' : 'リスト|Listing';
+  const re = new RegExp(
+    `^\\s*(?:${labelAlt})?\\s*[:：]?\\s*([\\s\\S]*?)\\s*\\{#${kind}:([a-zA-Z0-9_-]+)\\}\\s*$`,
+  );
+  for (const pos of [index - 1, index + 1]) {
+    const sib = parent.children[pos];
+    if (!sib || sib.type !== 'paragraph') continue;
+    const text = collectText(sib.children);
+    const m = text.match(re);
+    if (m) {
+      return { captionPara: sib as Paragraph, captionText: (m[1] ?? '').trim(), id: m[2]! };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * `block` を `figureNode` で置き換え、`captionPara` を親から取り除く。
+ * 配列インデックスのズレを避けるため、まず figure を据えてからキャプションを消す。
+ */
+function replaceBlockWithFigure(
+  parent: Parent,
+  block: RootContent,
+  captionPara: Paragraph,
+  figureNode: RootContent,
+): void {
+  const ch = parent.children as RootContent[];
+  const bi = ch.indexOf(block);
+  if (bi === -1) return;
+  ch[bi] = figureNode;
+  const ci = ch.indexOf(captionPara);
+  if (ci !== -1) ch.splice(ci, 1);
+}
+
+const REF_RE = /\[@(chap|fig|tbl|lst|sec|eq):([a-zA-Z0-9_/-]+)\]/g;
+
+/**
+ * tree 内のすべての text ノードを走査し、`[@kind:id]` を `resolve` の結果で置き換える。
+ * `href` が返れば mdast の `link`（`class="kappan-xref"`）に、無ければ素のテキストに
+ * 変換する。解決できない参照は手付かずで残す（後段で警告する）。
+ */
+function linkifyRefs(
+  tree: MdastRoot,
+  resolve: (kind: RefKind, raw: string) => ResolvedRef | undefined,
+): void {
+  const visitParent = (parent: Parent): void => {
+    if (!Array.isArray(parent.children)) return;
+    const out: RootContent[] = [];
+    for (const child of parent.children as RootContent[]) {
+      if (child.type === 'text') {
+        const replaced = transformText(child as Text, resolve);
+        if (replaced) {
+          out.push(...replaced);
+          continue;
+        }
+      }
+      out.push(child);
+    }
+    parent.children = out as Parent['children'];
+    for (const child of parent.children as RootContent[]) {
+      // inlineCode / code は children を持たないので踏み込まない（記法例を壊さない）。
+      if (
+        child &&
+        typeof child === 'object' &&
+        'children' in child &&
+        Array.isArray((child as Parent).children)
+      ) {
+        visitParent(child as Parent);
+      }
+    }
+  };
+  visitParent(tree as unknown as Parent);
+}
+
+function transformText(
+  node: Text,
+  resolve: (kind: RefKind, raw: string) => ResolvedRef | undefined,
+): PhrasingContent[] | null {
+  const value = node.value;
+  REF_RE.lastIndex = 0;
+  if (!REF_RE.test(value)) return null;
+  REF_RE.lastIndex = 0;
+  const out: PhrasingContent[] = [];
+  let cursor = 0;
+  let changed = false;
+  let m: RegExpExecArray | null;
+  while ((m = REF_RE.exec(value)) !== null) {
+    const resolved = resolve(m[1] as RefKind, m[2]!);
+    if (!resolved) continue; // 未解決：素のテキストに残す
+    if (m.index > cursor) out.push({ type: 'text', value: value.slice(cursor, m.index) });
+    if (resolved.href) {
+      const link: Link = {
+        type: 'link',
+        url: resolved.href,
+        title: null,
+        data: { hProperties: { className: ['kappan-xref'] } },
+        children: [{ type: 'text', value: resolved.label }],
+      };
+      out.push(link);
+    } else {
+      out.push({ type: 'text', value: resolved.label });
+    }
+    cursor = m.index + m[0].length;
+    changed = true;
+  }
+  if (!changed) return null;
+  if (cursor < value.length) out.push({ type: 'text', value: value.slice(cursor) });
+  return out;
+}
+
+/**
+ * 同一章内の `[@fig:id]` `[@tbl:id]` `[@lst:id]` `[@sec:id]` `[@eq:id]` をリンクに解決する。
+ * `[@chap:id]` と他章名前空間付き参照（`ch01/foo`）は `onMdastAllChapters` で解決する。
  */
 function resolveSameChapterRefs(tree: MdastRoot, record: ChapterDefs, labels: Labels): void {
-  const refRe = /\[@(fig|tbl|lst|sec|eq):([a-zA-Z0-9_-]+)\]/g;
-  visit(tree, 'text', (node: Text) => {
-    refRe.lastIndex = 0;
-    if (!refRe.test(node.value)) return;
-    refRe.lastIndex = 0;
-    node.value = node.value.replace(refRe, (match, kind: string, id: string) => {
-      const map = record.idToNumber[kind as RefKind];
-      const num = map?.get(id);
-      if (num === undefined) return match;
-      const label = labels[kind as keyof Labels];
-      return `${label}${num}`;
-    });
+  linkifyRefs(tree, (kind, raw) => {
+    if (kind === 'chap') return undefined;
+    if (raw.includes('/')) return undefined; // 他章参照は phase 2 へ
+    const num = record.idToNumber[kind]?.get(raw);
+    if (num === undefined) return undefined;
+    return { label: `${labels[kind]}${num}`, href: `#${anchorId(kind, raw)}` };
   });
 }
 
 /**
  * 章をまたぐ参照を解決する。
  *
- * - `[@chap:ch03]` → 「第3章」（chapterId から番号引き）
- * - `[@sec:ch03-intro]` 等で「他章の sec id」を指す記法は **章 ID で名前空間を切る**：
- *   `[@sec:ch03/intro]` のように `chapterId/refId` で他章参照を明示する。
- *   `[@sec:foo]` 単体（章 ID なし）はその章でのローカル定義扱い（同章解決済）。
+ * - `[@chap:ch03]` → 「第3章」（chapterId からファイル `ch03.xhtml` へリンク）
+ * - `[@sec:ch03/intro]` のように `chapterId/refId` で他章の図表・節を参照する：
+ *   `ch03.xhtml#sec-intro` へリンクする。
+ *   `[@sec:foo]` 単体（章 ID なし）は同章解決済みなので、ここまで残るのは未定義扱い。
  */
 function resolveCrossChapterRefs(
   tree: MdastRoot,
   byChapterId: Map<string, ChapterDefs>,
   labels: Labels,
 ): void {
-  const refRe = /\[@(chap|fig|tbl|lst|sec|eq):([a-zA-Z0-9_/-]+)\]/g;
+  linkifyRefs(tree, (kind, raw) => {
+    if (kind === 'chap') {
+      const defs = byChapterId.get(raw);
+      if (!defs) return undefined;
+      return { label: `${labels.chap}${defs.chapterNumber}章`, href: `${raw}.xhtml` };
+    }
+    const slashIdx = raw.indexOf('/');
+    if (slashIdx === -1) return undefined; // 同章参照（解決済み or 未定義）
+    const chapterId = raw.slice(0, slashIdx);
+    const refId = raw.slice(slashIdx + 1);
+    const defs = byChapterId.get(chapterId);
+    if (!defs) return undefined;
+    const num = defs.idToNumber[kind].get(refId);
+    if (num === undefined) return undefined;
+    return { label: `${labels[kind]}${num}`, href: `${chapterId}.xhtml#${anchorId(kind, refId)}` };
+  });
+}
+
+/**
+ * 解決されずに残った `[@kind:id]` を警告する。定義漏れ・タイプミスを著者が
+ * ビルドログで気付けるようにする（本文には生記法がそのまま出てしまうため）。
+ */
+function warnUnresolvedRefs(tree: MdastRoot, path: string, ctx: PluginContext): void {
+  const seen = new Set<string>();
   visit(tree, 'text', (node: Text) => {
-    refRe.lastIndex = 0;
-    if (!refRe.test(node.value)) return;
-    refRe.lastIndex = 0;
-    node.value = node.value.replace(refRe, (match, kind: string, raw: string) => {
-      const k = kind as RefKind;
-      if (k === 'chap') {
-        const defs = byChapterId.get(raw);
-        if (!defs) return match;
-        return `${labels.chap}${defs.chapterNumber}章`;
-      }
-      // 他章名前空間付き参照: ch03/intro → chapterId="ch03", refId="intro"
-      const slashIdx = raw.indexOf('/');
-      if (slashIdx !== -1) {
-        const chapterId = raw.slice(0, slashIdx);
-        const refId = raw.slice(slashIdx + 1);
-        const defs = byChapterId.get(chapterId);
-        if (!defs) return match;
-        const num = defs.idToNumber[k].get(refId);
-        if (num === undefined) return match;
-        const label = labels[k as keyof Labels];
-        return `${label}${num}`;
-      }
-      // 名前空間なしは同章解決の対象。ここまで残っているなら未解決なので元のまま。
-      return match;
-    });
+    REF_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = REF_RE.exec(node.value)) !== null) {
+      const ref = `${m[1]}:${m[2]}`;
+      if (seen.has(ref)) continue;
+      seen.add(ref);
+      ctx.emit({
+        severity: 'warning',
+        source: 'figure-numbering',
+        message: `${path}: 未解決の相互参照 [@${ref}]（定義が見つかりません）`,
+      });
+    }
   });
 }

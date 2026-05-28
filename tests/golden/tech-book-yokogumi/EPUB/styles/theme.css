@@ -244,17 +244,21 @@ figcaption {
     'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
 }
 
-/* 表のキャプションは表の上に置く（figure 内 [figcaption, table] の順） */
-.table-figure figcaption {
+/* 表・リストのキャプションはブロックの上に置く（figure 内 [figcaption, …] の順）。
+ * コード（リスト）は figure の中央寄せを解除し、コード本体を左揃えに戻す。 */
+.table-figure figcaption,
+.code-figure figcaption {
   margin: 0 0 0.4em;
 }
 
-/* plugin-figure-numbering が出力する図表番号（alt 先頭の「図1.1」など）
- * は <img alt> として保持されるため、本文中の参照リンク（<a>）と
- * 揃えるアクセント色をリンク側に当てる。 */
-a[href*='#fig:'],
-a[href*='#tbl:'],
-a[href*='#lst:'] {
+.code-figure {
+  text-align: left;
+}
+
+/* plugin-figure-numbering の相互参照リンク（`[@fig:id]` → 「図1.1」など）。
+ * 番号付きラベルが図表・節・章のアンカーへのハイパーリンクになり、
+ * リーダー上でジャンプできる。アクセント色＋点線下線で本文と区別する。 */
+a.kappan-xref {
   font-weight: bold;
   color: var(--saiun-accent);
   border-bottom-style: dotted;
