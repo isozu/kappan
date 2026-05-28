@@ -43,18 +43,19 @@ COPY tools tools
 RUN pnpm install --frozen-lockfile && \
     pnpm -r build
 
-# EPUBCheck を事前取得（オフラインモードのため）
-ENV KAPPAN_TOOLS_DIR=/opt/kappan
+# EPUBCheck を事前取得（オフライン用）。build は root なので /root/.kappan/ に展開される
 RUN pnpm epubcheck:fetch
 
 # --- ランタイム段階 ---
 FROM base AS runtime
 
-ENV KAPPAN_TOOLS_DIR=/opt/kappan
 ENV KAPPAN_OFFLINE_PREPARED=1
 
-COPY --from=build /opt/kappan /opt/kappan
+# build 段（root）で取得した EPUBCheck を runtime ユーザー kappan の HOME へ移し、
+# 既定の探索パス `~/.kappan/tools/epubcheck/...` で見つかるようにする
+COPY --from=build /root/.kappan /home/kappan/.kappan
 COPY --from=build /build /opt/kappan-source
+RUN chown -R kappan:kappan /home/kappan/.kappan
 
 # グローバル kappan コマンドの導通
 RUN ln -s /opt/kappan-source/packages/cli/dist/bin.js /usr/local/bin/kappan && \
