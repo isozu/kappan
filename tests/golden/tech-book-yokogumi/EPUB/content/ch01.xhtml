@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja" lang="ja"><head><meta charset="utf-8"></meta><title>第1章 ネットワーク基礎</title><link rel="stylesheet" type="text/css" href="../styles/theme.css"></link></head><body><h1>第1章 ネットワーク基礎</h1>
 <p class="kinsoku">ネットワークは現代の<ruby>分散<rt>ぶんさん</rt></ruby>システムの土台であ<span class="kinsoku-no-break">る。</span>本章で<span class="kinsoku-no-break">は、</span>TCP/IP の <ruby>階層構造<rt>かいそうこうぞう</rt></ruby>と
 そこに乗る代表的なプロトコルについ<span class="kinsoku-no-break">て、</span>横組み技術書らしい密度で解説す<span class="kinsoku-no-break">る。</span></p>
-<h2>1.1 OSI 参照モデル</h2>
+<h2 id="sec-osi">1.1 OSI 参照モデル</h2>
 <p class="kinsoku"><span id="kappan-idx-1" class="index-term">OSI参照モデル</span>は 7 階層からな<span class="kinsoku-no-break">る。</span>各階層は独立した責務を持<span class="kinsoku-no-break">ち、</span>上位層は下位層の
 詳細を意識せずに通信でき<span class="kinsoku-no-break">る。</span>これを <strong>抽象化</strong> と呼<span class="kinsoku-no-break">び、</span>現代の<em class="kenten">ソフトウェア設計</em>に
 おける最重要原則のひとつ<span class="kinsoku-no-break">だ。</span></p>
-<p class="kinsoku"><img src="../images/network.png" alt="図1.1: ネットワーク階層の概念図"/></p>
-<p class="kinsoku">図1.1に示すよう<span class="kinsoku-no-break">に、</span>各層は明確な役割を持<span class="kinsoku-no-break">つ。</span></p>
+<figure id="fig-layers"><img src="../images/network.png" alt="ネットワーク階層の概念図"/><figcaption>図1.1: ネットワーク階層の概念図</figcaption></figure>
+<p class="kinsoku"><a href="#fig-layers" class="kappan-xref">図1.1</a>に示すよう<span class="kinsoku-no-break">に、</span>各層は明確な役割を持<span class="kinsoku-no-break">つ。</span></p>
 <h3>階層ごとの役割</h3>
 <ol>
 <li class="kinsoku">物理<span class="kinsoku-no-break">層：</span>電気信号やパルスの物理的な伝送</li>
@@ -60,11 +60,11 @@ udp.send(Buffer.from('hello'), 53, 'dns.example');
 <p class="kinsoku">TCP は信頼<span class="kinsoku-no-break">性、</span>UDP は速<span class="kinsoku-no-break">度。</span>アプリケーション要件に合わせて選<span class="kinsoku-no-break">ぶ。</span></p>
 <p class="kinsoku">— ネットワーク設計の格言</p>
 </blockquote>
-<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>
+<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 id="footnote-label">脚注</h2>
 <ol>
 <li id="user-content-fn-ch1-cidr" class="kinsoku" epub:type="footnote">
 <p class="kinsoku">CIDR (Classless Inter-Domain Routing) は IPv4 アドレスを柔軟に
-割り当てるための仕組み<span class="kinsoku-no-break">で、</span>現在の IPv4 ネットワーク運用の基礎になってい<span class="kinsoku-no-break">る。</span> <a href="#user-content-fnref-ch1-cidr" data-footnote-backref="data-footnote-backref" aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+割り当てるための仕組み<span class="kinsoku-no-break">で、</span>現在の IPv4 ネットワーク運用の基礎になってい<span class="kinsoku-no-break">る。</span> <a href="#user-content-fnref-ch1-cidr" data-footnote-backref="data-footnote-backref" aria-label="本文に戻る" class="data-footnote-backref">↩</a></p>
 </li>
 </ol>
 </aside></body></html>

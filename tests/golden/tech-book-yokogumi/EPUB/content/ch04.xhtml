@@ -5,6 +5,8 @@
 <h2>4.1 サーキットブレーカー</h2>
 <p class="kinsoku">サーキットブレーカー<span class="kinsoku-no-break">は、</span>外部依存への呼び出しが連続失敗した場合に
 回路を<span class="kinsoku-no-break">「開</span><span class="kinsoku-no-break">く」</span>ことで雪崩的障害を防ぐパターンであ<span class="kinsoku-no-break">る。</span></p>
+<figure class="code-figure" id="lst-circuit-breaker">
+<figcaption>リスト4.1: サーキットブレーカーの最小実装</figcaption>
 <pre><code class="language-typescript">class CircuitBreaker {
   private state: 'closed' | 'open' | 'half-open' = 'closed';
   private failureCount = 0;
@@ -34,10 +36,13 @@
   }
 }
 </code></pre>
-<p class="kinsoku">リスト4.1<span class="kinsoku-no-break">（[</span>@lst:circuit-breaker<span class="kinsoku-no-break">]）</span>は最小実装のサーキットブレー<span class="kinsoku-no-break">カ。</span></p>
+</figure>
+<p class="kinsoku"><a href="#lst-circuit-breaker" class="kappan-xref">リスト4.1</a>は最小実装のサーキットブレー<span class="kinsoku-no-break">カ。</span></p>
 <h2>4.2 バルクヘッド</h2>
 <p class="kinsoku">バルクヘッドは<span class="kinsoku-no-break">「あ</span>る障害が他の正常な処理を{巻き込まない<span class="kinsoku-no-break">}」</span>ように
 リソースプールを分離するパターンであ<span class="kinsoku-no-break">る。</span></p>
+<figure class="table-figure" id="tbl-bulkhead">
+<figcaption>表4.1: バルクヘッドの有無による比較</figcaption>
 <table>
 <thead>
 <tr>
@@ -64,7 +69,8 @@
 </tr>
 </tbody>
 </table>
-<p class="kinsoku">表4.1<span class="kinsoku-no-break">（[</span>@tbl:bulkhead<span class="kinsoku-no-break">]）</span>の通<span class="kinsoku-no-break">り、</span>バルクヘッドは効率を多少犠牲にして
+</figure>
+<p class="kinsoku"><a href="#tbl-bulkhead" class="kappan-xref">表4.1</a>の通<span class="kinsoku-no-break">り、</span>バルクヘッドは効率を多少犠牲にして
 <em class="kenten">障害の影響範囲</em>を最小化す<span class="kinsoku-no-break">る。</span></p>
 <h2>4.3 リトライとバックオフ</h2>
 <p class="kinsoku">リトライは諸刃の剣であ<span class="kinsoku-no-break">る。</span>素朴な<span class="kinsoku-no-break">「即</span>時リトラ<span class="kinsoku-no-break">イ」</span>は障害を増幅させかねな<span class="kinsoku-no-break">い。</span></p>
@@ -73,8 +79,8 @@
 <li class="kinsoku">ジッタ付き指数バックオ<span class="kinsoku-no-break">フ：</span>分散させる</li>
 <li class="kinsoku">リトライ予<span class="kinsoku-no-break">算：</span>単位時間あたりのリトライ回数上限</li>
 </ul>
-<p class="kinsoku"><img src="../images/network.png" alt="図4.1: 指数バックオフのタイミング図"/></p>
-<p class="kinsoku">図4.1に示したよう<span class="kinsoku-no-break">に、</span>ジッタを入れないと<em class="kenten">同期再試行</em>による
+<figure id="fig-backoff"><img src="../images/network.png" alt="指数バックオフのタイミング図"/><figcaption>図4.1: 指数バックオフのタイミング図</figcaption></figure>
+<p class="kinsoku"><a href="#fig-backoff" class="kappan-xref">図4.1</a>に示したよう<span class="kinsoku-no-break">に、</span>ジッタを入れないと<em class="kenten">同期再試行</em>による
 スパイクが発生する<sup><a href="#user-content-fn-ch4-jitter" id="user-content-fnref-ch4-jitter" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">1</a></sup>。</p>
 <h2>4.4 アイドルタイムアウト</h2>
 <p class="kinsoku">接続は永遠には維持できな<span class="kinsoku-no-break">い。</span>アイドルタイムアウト<span class="kinsoku-no-break">は、</span>
@@ -86,12 +92,12 @@
 <p class="kinsoku">実装で<span class="kinsoku-no-break">は、</span>各層<span class="kinsoku-no-break">（ク</span>ライアン<span class="kinsoku-no-break">ト、</span>ロードバラン<span class="kinsoku-no-break">サ、</span>プロキ<span class="kinsoku-no-break">シ、</span>サー<span class="kinsoku-no-break">バ）</span>で
 タイムアウトを揃える必要があ<span class="kinsoku-no-break">る。</span>揃わないと<em class="kenten">末端側のタイムアウト</em>が
 他のレイヤを巻き込んで失敗す<span class="kinsoku-no-break">る。</span></p>
-<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>
+<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 id="footnote-label">脚注</h2>
 <ol>
 <li id="user-content-fn-ch4-jitter" class="kinsoku" epub:type="footnote">
 <p class="kinsoku">ジッタは<span class="kinsoku-no-break">「ラ</span>ンダムなず<span class="kinsoku-no-break">れ」</span>のこ<span class="kinsoku-no-break">と。</span>具体的には <code>delay * (1 + rand() * 0.5)</code>
 のような形で計算するのが一般<span class="kinsoku-no-break">的。</span>詳細は AWS Architecture Blog の "Exponential Backoff
-And Jitter" を参<span class="kinsoku-no-break">照。</span> <a href="#user-content-fnref-ch4-jitter" data-footnote-backref="data-footnote-backref" aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+And Jitter" を参<span class="kinsoku-no-break">照。</span> <a href="#user-content-fnref-ch4-jitter" data-footnote-backref="data-footnote-backref" aria-label="本文に戻る" class="data-footnote-backref">↩</a></p>
 </li>
 </ol>
 </aside></body></html>

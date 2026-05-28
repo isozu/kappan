@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-yojijukugo",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Yojijukugo: normalize common four-character idiom spelling variants (M2-B)",
   "main": "./src/index.ts",

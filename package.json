@@ -33,6 +33,7 @@
     "@kappan/epub-packager": "workspace:*",
     "@kappan/migrate-review": "workspace:*",
     "@kappan/plugin-figure-numbering": "workspace:*",
+    "@kappan/plugin-heading-number": "workspace:*",
     "@kappan/plugin-jp-index": "workspace:*",
     "@kappan/plugin-kinsoku": "workspace:*",
     "@kappan/plugin-reader-shim": "workspace:*",

@@ -1,6 +1,6 @@
 {
   "name": "@kappan/themes-saiun",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Kappan Saiun theme (彩雲): for technical and practical books (M1)",
   "main": "./src/index.ts",

@@ -152,10 +152,24 @@ figure {
   text-align: center;
 }
 
+figure img {
+  max-width: 100%;
+  height: auto;
+}
+
 figcaption {
   font-size: 0.9em;
   color: #666;
   margin-top: 0.4em;
+}
+
+/* 表のキャプションは表の上に左寄せで置く（figure 内 [figcaption, table] の順） */
+.table-figure {
+  text-align: left;
+}
+
+.table-figure figcaption {
+  margin: 0 0 0.4em;
 }
 
 /* テーブル */
@@ -184,4 +198,20 @@ hr {
   border-top: 1px solid #ccc;
   margin: 2em auto;
   width: 50%;
+}
+
+/* 脚注（言語別・可視ラベル） */
+aside[epub\:type='footnotes'] {
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 1px solid #ccc;
+  font-size: 0.92em;
+  color: #555;
+}
+
+#footnote-label {
+  margin: 0 0 0.5em;
+  font-size: 1em;
+  font-weight: bold;
+  color: #1a1a1a;
 }

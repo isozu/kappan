@@ -2,8 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja" lang="ja"><head><meta charset="utf-8"></meta><title>第2章 分散システムの設計原則</title><link rel="stylesheet" type="text/css" href="../styles/theme.css"></link></head><body><h1>第2章 分散システムの設計原則</h1>
 <p class="kinsoku">分散システムは単一マシン上のプログラムとは <ruby>本質的<rt>ほんしつてき</rt></ruby>に異なる難しさを抱え<span class="kinsoku-no-break">る。</span>
 本章で<span class="kinsoku-no-break">は、</span>分散システム設計における<em class="kenten">基本原則</em>を取り上げ<span class="kinsoku-no-break">る。</span></p>
-<p class="kinsoku">本章は 第1章 で扱ったネットワーク基礎を踏ま<span class="kinsoku-no-break">え、</span>分断耐性を中心に論じ<span class="kinsoku-no-break">る。</span></p>
-<h2>2.1 CAP 定理</h2>
+<p class="kinsoku">本章は <a href="ch01.xhtml" class="kappan-xref">第1章</a> で扱ったネットワーク基礎を踏ま<span class="kinsoku-no-break">え、</span>分断耐性を中心に論じ<span class="kinsoku-no-break">る。</span></p>
+<h2 id="sec-cap">2.1 CAP 定理</h2>
 <p class="kinsoku"><span id="kappan-idx-2" class="index-term">CAP定理</span>は分散システムの設計<span class="kinsoku-no-break">上、</span>次の 3 つの性質を同時には満たせないと述べてい<span class="kinsoku-no-break">る。</span></p>
 <ul>
 <li class="kinsoku"><strong>C</strong> (Consistency<span class="kinsoku-no-break">)：</span>一貫性</li>
@@ -11,8 +11,8 @@
 <li class="kinsoku"><strong>P</strong> (Partition tolerance<span class="kinsoku-no-break">)：</span>ネットワーク分断耐性</li>
 </ul>
 <p class="kinsoku">ネットワーク分断は実世界で発生するた<span class="kinsoku-no-break">め、</span>現実的な選択肢は CP か AP のどちらかにな<span class="kinsoku-no-break">る。</span></p>
-<p class="kinsoku"><img src="../images/architecture.png" alt="図2.1: CAP 定理の三項関係"/></p>
-<p class="kinsoku">図2.1に示した構造<span class="kinsoku-no-break">は、</span>Kappan のような書籍ビルダにとっても示唆深<span class="kinsoku-no-break">い。</span>
+<figure id="fig-cap"><img src="../images/architecture.png" alt="CAP 定理の三項関係"/><figcaption>図2.1: CAP 定理の三項関係</figcaption></figure>
+<p class="kinsoku"><a href="#fig-cap" class="kappan-xref">図2.1</a>に示した構造<span class="kinsoku-no-break">は、</span>Kappan のような書籍ビルダにとっても示唆深<span class="kinsoku-no-break">い。</span>
 ローカルマシン上で完結する Kappan は本質的に CP 側だ<span class="kinsoku-no-break">が、</span>分散ビルド<span class="kinsoku-no-break">（M</span>3 想<span class="kinsoku-no-break">定）</span>を
 扱う場合は AP との折り合いが必要になる<sup><a href="#user-content-fn-ch2-distributed-build" id="user-content-fnref-ch2-distributed-build" data-footnote-ref="data-footnote-ref" aria-describedby="footnote-label" epub:type="noteref">1</a></sup>。</p>
 <h2>2.2 一貫性モデル</h2>
@@ -51,9 +51,9 @@
 <p class="kinsoku">上表で示した通<span class="kinsoku-no-break">り、</span>一貫性モデルの選択肢は多<span class="kinsoku-no-break">い。</span></p>
 <p class="kinsoku">可用性の定量化に<span class="kinsoku-no-break">は、</span>稼働率 <span class="math math-inline"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span></span> を用い<span class="kinsoku-no-break">る。</span></p>
 <div class="math math-display"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>A</mi><mo>=</mo><mfrac><mtext>MTBF</mtext><mrow><mtext>MTBF</mtext><mo>+</mo><mtext>MTTR</mtext></mrow></mfrac></mrow><annotation encoding="application/x-tex">A = \frac{\text{MTBF}}{\text{MTBF} + \text{MTTR}}</annotation></semantics></math></span></div>
-<p class="kinsoku">式2.1のよう<span class="kinsoku-no-break">に、</span>平均故障間隔<span class="kinsoku-no-break">（M</span>TB<span class="kinsoku-no-break">F）</span>が長く平均修復時間<span class="kinsoku-no-break">（M</span>TT<span class="kinsoku-no-break">R）</span>が
+<p id="eq-availability" class="kinsoku"><a href="#eq-availability" class="kappan-xref">式2.1</a>のよう<span class="kinsoku-no-break">に、</span>平均故障間隔<span class="kinsoku-no-break">（M</span>TB<span class="kinsoku-no-break">F）</span>が長く平均修復時間<span class="kinsoku-no-break">（M</span>TT<span class="kinsoku-no-break">R）</span>が
 短いほど可用性は高くな<span class="kinsoku-no-break">る。</span></p>
-<pre><code class="language-typescript">interface CausalOrder&#x3C;T> {
+<pre><code class="language-typescript" id="lst-vector-clock">interface CausalOrder&#x3C;T> {
   apply(event: T, vectorClock: VectorClock): void;
   query(): readonly="readonly" T[];
 }
@@ -65,7 +65,7 @@ class VectorClock {
   }
 }
 </code></pre>
-<p class="kinsoku">リスト2.1はベクトルクロックの簡略実装であ<span class="kinsoku-no-break">る。</span></p>
+<p class="kinsoku"><a href="#lst-vector-clock" class="kappan-xref">リスト2.1</a>はベクトルクロックの簡略実装であ<span class="kinsoku-no-break">る。</span></p>
 <h2>2.3 障害モデル</h2>
 <p class="kinsoku">分散システムでは<span class="kinsoku-no-break">「正</span><span class="kinsoku-no-break">常」</span>と<span class="kinsoku-no-break">「障</span><span class="kinsoku-no-break">害」</span>が連続的に存在す<span class="kinsoku-no-break">る。</span></p>
 <ol>
@@ -75,11 +75,11 @@ class VectorClock {
 <li class="kinsoku">ビザンチン障<span class="kinsoku-no-break">害：</span>任意の挙動を取る</li>
 </ol>
 <p class="kinsoku">ビザンチン障害は最も扱いにく<span class="kinsoku-no-break">く、</span>一貫性モデルの選択も再考が必要にな<span class="kinsoku-no-break">る。</span></p>
-<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 class="sr-only" id="footnote-label">Footnotes</h2>
+<aside data-footnotes="data-footnotes" class="footnotes" epub:type="footnotes"><h2 id="footnote-label">脚注</h2>
 <ol>
 <li id="user-content-fn-ch2-distributed-build" class="kinsoku" epub:type="footnote">
 <p class="kinsoku">分散ビルドは M3 で検討す<span class="kinsoku-no-break">る。</span>M1 では単一マシン前提のた<span class="kinsoku-no-break">め、</span>
-本書のサンプルもローカル完結のみを想定してい<span class="kinsoku-no-break">る。</span> <a href="#user-content-fnref-ch2-distributed-build" data-footnote-backref="data-footnote-backref" aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+本書のサンプルもローカル完結のみを想定してい<span class="kinsoku-no-break">る。</span> <a href="#user-content-fnref-ch2-distributed-build" data-footnote-backref="data-footnote-backref" aria-label="本文に戻る" class="data-footnote-backref">↩</a></p>
 </li>
 </ol>
 </aside></body></html>
