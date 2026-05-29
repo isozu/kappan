@@ -7,6 +7,7 @@ const ctx = {
   config: {} as KappanConfig,
   logger: { debug() {}, info() {}, warn() {}, error() {} },
   cache: { get: () => undefined, set: () => {}, delete: () => false },
+  chapters: [],
   emit: (_d: Diagnostic) => {},
 };
 

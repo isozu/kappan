@@ -40,9 +40,9 @@ shiki シンタックスハイライト・図表番号と章をまたぐ相互�
 
 ## Re:VIEW という先達
 
-[Re:VIEW](https://github.com/kmuto/review) は、日本語技術書出版の事実上の標準として長く使われてきたツールです。ルビ・圏点・縦中横といった日本語組版要素を構造的に扱う設計思想は、Kappan が大いに参考にしました。
+[Re:VIEW](https://github.com/kmuto/review) は、日本語技術書出版の事実上の標準として長く使われてきたツールです。ルビ・圏点・縦中横といった日本語組版要素を構造的に扱う設計思想は、Kappan が大いに参考にしました。囲み記事（`//note` 等）やコラム（`//column`）も、Markdown ネイティブの `:::note` / `:::column` として一級記法で書けます。
 
-`kappan migrate` は、Re:VIEW で蓄積した原稿資産を Markdown ワークフローへ持ち込むための移行パスです。
+`kappan migrate` は、Re:VIEW で蓄積した原稿資産を Markdown ワークフローへ持ち込むための移行パスです（`//note` → `:::note`、`//column` → `:::column` に変換）。
 
 → [`examples/showcase-migration/`](./examples/showcase-migration/) / [`docs/migrating-from-review.md`](./docs/migrating-from-review.md)
 
@@ -54,8 +54,33 @@ shiki シンタックスハイライト・図表番号と章をまたぐ相互�
 - **縦書き小説に対応** — `writing-mode: vertical-rl`、ルビ・圏点・縦中横・約物連続・章扉・会話文制御まで。Kindle Unlimited の縦書き小説を商業品質で組める
 - **EPUB 3.3 ファーストクラス** — リフロー・脚注ポップアップ・メタデータが一級市民。紙 PDF 優先の設計ではない
 - **アクセシビリティを強制** — EPUBCheck 0 errors + ACE by DAISY をビルドゲートに。EAA / 改正障害者差別解消法への対応を最初から組み込む
-- **AST プラグインエコシステム** — 11 公式プラグイン + 5 テーマ。`definePlugin` で拡張し、zod で型安全
+- **囲み記事・コラム** — `:::note` / `:::warning` の注記から、目次掲載＋相互参照つきの `:::column` まで、Markdown ネイティブ（`remark-directive`）で書ける
+- **AST プラグインエコシステム** — 13 公式プラグイン + 5 テーマ。`definePlugin` で拡張し、zod で型安全
 - **モダンな DX** — `kappan preview` のライブリロード（HMR 中央値 7ms）、公式 Docker イメージ、CI 回帰検出
+
+---
+
+## 対応記法ハイライト
+
+CommonMark + GFM に加え、日本語書籍に必要な記法を AST レベルで拡張している（コードブロック内は壊さない）。
+
+```markdown
+ルビ {活版|かっぱん}印刷、圏点 [重要]{.kenten}、縦中横は自動。
+
+図表番号と相互参照：![構成図](arch.png){#fig:arch} → 本文で [@fig:arch]。
+索引：{!活版印刷|かっぱんいんさつ!} は巻末索引に集約。
+数式：$E = mc^2$（既定 MathML 出力）。
+
+:::warning[互換性の注意]
+古いリーダーでは MathML が表示できない。
+:::
+
+:::column[なぜ速いのか]{#col:why-fast}
+コラム本文。目次に載り、本文から [@col:why-fast] で参照できる。
+:::
+```
+
+記法の全一覧は [`docs/reference/notations.md`](./docs/reference/notations.md)。
 
 ---
 
@@ -129,6 +154,8 @@ pnpm kappan preview --config tests/fixtures/tech-book-yokogumi/kappan.config.ts
 | 公式 Docker イメージ（`ghcr.io/kappan/build:0.3`）                             | 対応済み |
 | ベンチしきい値判定（Welch's t-test / IQR 1.5× / 累積 15%）                     | 対応済み |
 | 図表番号・相互参照（fig/tbl/lst + sec/eq/chap、章をまたぐ参照）                | 対応済み |
+| 囲み記事（`:::note` 〜 `:::memo`、remark-directive）                           | 対応済み |
+| コラム（`:::column[題]{#col:id}`、目次掲載 + `[@col:id]` 相互参照）            | 対応済み |
 | 索引（`{!語!}` / `[語]{.index reading=""}`、巻末索引自動生成）                 | 対応済み |
 | KaTeX 数式（`$...$` / `$$...$$`、MathML 出力）                                 | 対応済み |
 | テーマ 5 種（Mono / Saiun / Kohaku / Hibana / Sumi=縦書き小説）                | 対応済み |
@@ -189,7 +216,7 @@ Chromium（Thorium 近似）で構造・レイアウトを自動検証してい�
 
 ---
 
-## パッケージ構成（全 20 パッケージ `0.3.0` / 公開済）
+## パッケージ構成（全 23 パッケージ / 公開済）
 
 | パッケージ                        | 責務                                                                                            |
 | --------------------------------- | ----------------------------------------------------------------------------------------------- |
@@ -205,6 +232,9 @@ Chromium（Thorium 近似）で構造・レイアウトを自動検証してい�
 | `@kappan/remark-tech`             | 技術書向け拡張（shiki ハイライト・KaTeX 数式）                                                  |
 | `@kappan/plugin-review-compat`    | Re:VIEW 記法の部分受理レイヤー                                                                  |
 | `@kappan/plugin-figure-numbering` | 図表番号と相互参照（fig/tbl/lst/sec/eq/chap、章をまたぐ）                                       |
+| `@kappan/plugin-admonition`       | 囲み記事（`:::note` 〜 `:::memo`、remark-directive）                                            |
+| `@kappan/plugin-column`           | コラム（`:::column`、目次掲載 + `[@col:id]` 相互参照）                                          |
+| `@kappan/plugin-toc`              | 読者向け目次ページ生成（章・節・コラムを掲載）                                                  |
 | `@kappan/plugin-jp-index`         | 索引生成（MeCab 不使用、kuromoji.js 任意）                                                      |
 | `@kappan/plugin-kinsoku`          | 禁則処理                                                                                        |
 | `@kappan/plugin-wahukon`          | 和欧混植の文字間調整                                                                            |

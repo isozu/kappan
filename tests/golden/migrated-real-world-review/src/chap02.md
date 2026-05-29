@@ -19,11 +19,13 @@ export async function main() {
 }
 ```
 
-> [!NOTE] NOTE
-> M1 では `buildBook` と `buildChapter` の2つを公開している。
+:::note[NOTE]
+M1 では `buildBook` と `buildChapter` の2つを公開している。
+:::
 
-> [!WARNING]
-> EPUBCheck を通さない EPUB は商業流通に出さないこと。
+:::warning
+EPUBCheck を通さない EPUB は商業流通に出さないこと。
+:::
 
 詳細は //list[main] を参照。[^note1] に補足を記す。
 

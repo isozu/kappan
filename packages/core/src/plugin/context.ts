@@ -1,6 +1,7 @@
 import type { Diagnostic } from '../types.js';
 import type { KappanConfig } from '../config/schema.js';
 import type { PluginContext, PluginLogger, PluginCache } from './types.js';
+import type { ChapterMeta } from './chapterRegistry.js';
 
 /**
  * `PluginContext` の標準実装を組み立てる。
@@ -11,6 +12,8 @@ import type { PluginContext, PluginLogger, PluginCache } from './types.js';
 export interface CreateContextOptions {
   readonly config: KappanConfig;
   readonly diagnostics: Diagnostic[];
+  /** spine 順に並んだ全章メタデータ。省略時は空配列（後方互換、ユニットテスト用） */
+  readonly chapters?: readonly ChapterMeta[];
 }
 
 export function createPluginContext(opts: CreateContextOptions): PluginContext {
@@ -21,6 +24,7 @@ export function createPluginContext(opts: CreateContextOptions): PluginContext {
     config: opts.config,
     logger,
     cache,
+    chapters: opts.chapters ?? [],
     emit(diagnostic) {
       opts.diagnostics.push(diagnostic);
     },

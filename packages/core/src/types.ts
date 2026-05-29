@@ -24,10 +24,29 @@ export interface SourceFile {
   readonly frontmatter: ChapterFrontmatter;
 }
 
+export type ChapterKind = 'chapter' | 'frontmatter' | 'backmatter' | 'appendix';
+
 export interface ChapterFrontmatter {
   readonly title?: string;
   readonly id?: string;
   readonly next?: string;
+  /**
+   * 章の種別。省略時は `chapter` 扱い。
+   *   - `chapter`：本文章。`plugin-heading-number` は ChapterRegistry に
+   *     `chapterNumber` を採番する
+   *   - `frontmatter` / `backmatter` / `appendix`：補助章。採番は別系統
+   *     （現段階では採番対象外、将来 appendix の独自採番に拡張する余地を残す）
+   */
+  readonly kind?: ChapterKind;
+  /** 章を「部」(第I部) でグルーピングする際の通し番号。将来用、現状は採番非対応 */
+  readonly part?: number;
+  /** 部の見出し。`part` を新しく開始する章にのみ書く（連続する章は同じ part を共有） */
+  readonly partTitle?: string;
+  /**
+   * 著者明示の章番号オーバーライド。指定すれば
+   * front-matter `id` / `{#chXX}` / spine 順 のいずれよりも優先される。
+   */
+  readonly chapterNumber?: number;
 }
 
 /**

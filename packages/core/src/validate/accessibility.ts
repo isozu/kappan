@@ -135,6 +135,9 @@ const ALLOWED_TAGS_BY_TYPE: Record<string, ReadonlySet<string>> = {
   introduction: new Set(['section', 'article']),
   bibliography: new Set(['section', 'aside']),
   glossary: new Set(['section', 'aside']),
+  // コラム・補足囲み（plugin-column / plugin-admonition）。本文から切り離して
+  // 読める傍流コンテンツ。EPUB Structural Semantics Vocabulary の `sidebar`。
+  sidebar: new Set(['aside']),
   index: new Set(['section', 'nav']),
   appendix: new Set(['section', 'article']),
   cover: new Set(['section', 'img']),

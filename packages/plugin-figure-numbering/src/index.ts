@@ -1,5 +1,5 @@
 import { definePlugin } from '@kappan/core';
-import type { PluginContext } from '@kappan/core';
+import type { ChapterMeta, PluginContext } from '@kappan/core';
 import type {
   Root as MdastRoot,
   Image,
@@ -136,8 +136,20 @@ export const figureNumbering = definePlugin<FigureNumberingOptions>({
     return {
       onMdast(tree: MdastRoot, ctx) {
         // フェーズ 1：1 章分の定義を集めて番号を割り振り、同章内の参照を解決する。
-        const chapterNumber = inferChapterNumber(tree);
+        //
+        // 章番号源は heading-number と揃える：
+        //   1. front-matter `chapterNumber` (ctx.chapters 経由)
+        //   2. front-matter `id` の `chNN` 数字
+        //   3. h1 の `{#chXX}` マーカー
+        //   4. h1 の "第N章" 明示ラベル
+        //   5. fallback 1
+        //
+        // onMdast には章 path が渡されないので、h1 の `{#chXX}` から取った章 ID を
+        // ctx.chapters と照合して meta を見つける。マーカーが無い場合は meta 不明だが
+        // 現行の h1 推論で動作する（後方互換）。
         const chapterId = inferChapterId(tree);
+        const meta = findChapterMeta(ctx.chapters, chapterId);
+        const chapterNumber = resolveChapterNumber(tree, meta);
 
         // h1 から章 ID マーカー `{#chXX}` を取り除く（見出しに残さない）。
         stripChapterIdMarker(tree);
@@ -175,8 +187,36 @@ export const figureNumbering = definePlugin<FigureNumberingOptions>({
 });
 
 /**
- * tree から章番号を推定する。プラグインは frontmatter を直接受け取れないため、
- * 章番号は h1 のテキストから推定する。
+ * 章 ID から `ChapterMeta` を引く。ctx.chapters が空（ユニットテスト等）なら undefined。
+ */
+function findChapterMeta(
+  chapters: readonly ChapterMeta[],
+  chapterId: string | undefined,
+): ChapterMeta | undefined {
+  if (!chapterId) return undefined;
+  return chapters.find((c) => c.id === chapterId);
+}
+
+/**
+ * 章番号を解決する。優先順位（heading-number と同一）：
+ *   1. front-matter `chapterNumber`
+ *   2. front-matter `id` 末尾の数字（`ch05` → 5）
+ *   3. h1 テキストからの推定（`第N章` / `{#chXX}` / 任意の数字 / fallback 1）
+ *
+ * meta が undefined（ctx.chapters が空 / 一致章なし）の場合は 3 にフォールバック。
+ */
+function resolveChapterNumber(tree: MdastRoot, meta: ChapterMeta | undefined): number {
+  if (meta?.frontmatter.chapterNumber !== undefined) return meta.frontmatter.chapterNumber;
+  const fmId = meta?.frontmatter.id;
+  if (fmId) {
+    const m = fmId.match(/^[a-zA-Z]+(\d+)$/);
+    if (m) return Number.parseInt(m[1]!, 10);
+  }
+  return inferChapterNumberFromTree(tree);
+}
+
+/**
+ * tree から章番号を推定する（heading-number / front-matter 不在時のフォールバック）。
  *
  * 優先順：
  *   1. h1 の "第N章" / "Chapter N"（最も意図が明確）
@@ -190,7 +230,7 @@ export const figureNumbering = definePlugin<FigureNumberingOptions>({
  * 同一ブック内に `{#ch01}` と `{#preface}` が共存すると番号衝突が起きる（図1.1 が
  * 両章で発生）ため、章 ID は数字を含む `ch00` / `ch01` 形式で揃える運用を推奨する。
  */
-function inferChapterNumber(tree: MdastRoot): number {
+function inferChapterNumberFromTree(tree: MdastRoot): number {
   // h1 を探す
   for (const child of tree.children) {
     if (child.type === 'heading' && child.depth === 1) {

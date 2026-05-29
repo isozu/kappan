@@ -1,6 +1,13 @@
-import type { ChapterFrontmatter } from '../types.js';
+import type { ChapterFrontmatter, ChapterKind } from '../types.js';
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
+
+const CHAPTER_KINDS: ReadonlySet<ChapterKind> = new Set([
+  'chapter',
+  'frontmatter',
+  'backmatter',
+  'appendix',
+]);
 
 export interface ParsedSource {
   readonly frontmatter: ChapterFrontmatter;
@@ -9,8 +16,13 @@ export interface ParsedSource {
 
 /**
  * Markdown ソース先頭の YAML front-matter を分解する。
- * title / id / next の3フィールドを認識する最小実装。
- * 値のクォート（' または "）は除去する。
+ *
+ * 認識フィールド：
+ *   - 文字列: `title` / `id` / `next` / `partTitle`
+ *   - 列挙: `kind` (chapter|frontmatter|backmatter|appendix)
+ *   - 整数: `part` / `chapterNumber`
+ *
+ * 値のクォート（' または "）は除去する。未知のキーは無視する（後方互換）。
  */
 export function parseFrontmatter(source: string): ParsedSource {
   const match = source.match(FRONTMATTER_RE);
@@ -30,8 +42,15 @@ export function parseFrontmatter(source: string): ParsedSource {
     const key = line.slice(0, colonIdx).trim();
     const value = unquote(line.slice(colonIdx + 1).trim());
 
-    if (key === 'title' || key === 'id' || key === 'next') {
+    if (key === 'title' || key === 'id' || key === 'next' || key === 'partTitle') {
       frontmatter[key] = value;
+    } else if (key === 'kind') {
+      if ((CHAPTER_KINDS as ReadonlySet<string>).has(value)) {
+        frontmatter.kind = value as ChapterKind;
+      }
+    } else if (key === 'part' || key === 'chapterNumber') {
+      const n = Number.parseInt(value, 10);
+      if (Number.isFinite(n)) frontmatter[key] = n;
     }
   }
 

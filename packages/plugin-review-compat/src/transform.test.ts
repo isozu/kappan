@@ -130,26 +130,35 @@ ls -la
     expect(out).toContain('> 複数行');
   });
 
-  it('converts //note{ ... //} to GFM admonition', () => {
+  it('converts //note{ ... //} to a :::note directive', () => {
     const out = transformReviewSource(`//note{
 本文
 //}`);
-    expect(out).toContain('> [!NOTE]');
-    expect(out).toContain('> 本文');
+    expect(out).toContain(':::note');
+    expect(out).toContain('本文');
+    expect(out).toContain(':::');
   });
 
-  it('converts //tip with title to admonition', () => {
+  it('converts //tip with title to a :::tip[title] directive', () => {
     const out = transformReviewSource(`//tip[ヒント]{
 便利
 //}`);
-    expect(out).toContain('> [!TIP] ヒント');
+    expect(out).toContain(':::tip[ヒント]');
   });
 
-  it('converts //warning to admonition', () => {
+  it('converts //warning to a :::warning directive', () => {
     const out = transformReviewSource(`//warning{
 注意
 //}`);
-    expect(out).toContain('> [!WARNING]');
+    expect(out).toContain(':::warning');
+  });
+
+  it('converts //column[caption] to a :::column directive with a #col: id', () => {
+    const out = transformReviewSource(`//column[なぜ速いのか]{
+コラム本文
+//}`);
+    expect(out).toContain(':::column[なぜ速いのか]{#col:');
+    expect(out).toContain('コラム本文');
   });
 
   it('converts //image[id][caption] to markdown image with images/ path', () => {

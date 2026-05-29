@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { KappanConfig } from '../config/schema.js';
+import type { ChapterFrontmatter } from '../types.js';
 import { parseFrontmatter } from './frontmatter.js';
 
 export interface Chapter {
@@ -14,6 +15,8 @@ export interface Chapter {
   readonly title: string;
   /** Markdown 本文（front-matter は除去済み） */
   readonly markdown: string;
+  /** パース済み front-matter（章番号・部・種別などプラグインが参照する） */
+  readonly frontmatter: ChapterFrontmatter;
 }
 
 /**
@@ -51,6 +54,7 @@ export async function collectChapters(config: KappanConfig, configDir: string): 
       id: frontmatter.id ?? slugifyFilename(relativePath),
       title: frontmatter.title ?? extractFirstHeading(body) ?? relativePath,
       markdown: body,
+      frontmatter,
     });
 
     cursor = frontmatter.next ? path.join(path.dirname(cursor), frontmatter.next) : undefined;
