@@ -18,6 +18,14 @@ Markdown を入力とし、日本語組版・アクセシビリティ・モダ�
 
 ## ショーケース
 
+### 全部入り（Saiun テーマ）
+
+ルビ（パイプ＋属性）・圏点・図表番号・コードハイライト・相互参照・数式・脚注・索引・囲み記事・コラム——主要記法を 1 冊に詰め込んだ完成見本。下はその第1章（図・番号付きコード・表・相互参照リンク）。
+
+![Kappan 全部入りショーケースの第1章（図表番号・shiki コードハイライト・番号付き表・相互参照リンク）](./examples/showcase-all-features/screenshots/all-features.png)
+
+→ [`examples/showcase-all-features/`](./examples/showcase-all-features/)（囲み記事・コラムの誌面は [`screenshots/ch03.png`](./examples/showcase-all-features/screenshots/ch03.png) を参照）
+
 ### 縦書き小説（Sumi テーマ）
 
 ルビ・圏点・縦中横・章扉・会話文制御を備えた本格的な縦組み小説。
@@ -65,7 +73,7 @@ shiki シンタックスハイライト・図表番号と章をまたぐ相互�
 CommonMark + GFM に加え、日本語書籍に必要な記法を AST レベルで拡張している（コードブロック内は壊さない）。
 
 ```markdown
-ルビ {活版|かっぱん}印刷、圏点 [重要]{.kenten}、縦中横は自動。
+ルビはパイプ {活版|かっぱん} でも属性 [校正]{ruby="こうせい"} でも。圏点 [重要]{.kenten}、縦中横は自動。
 
 図表番号と相互参照：![構成図](arch.png){#fig:arch} → 本文で [@fig:arch]。
 索引：{!活版印刷|かっぱんいんさつ!} は巻末索引に集約。
@@ -80,7 +88,7 @@ CommonMark + GFM に加え、日本語書籍に必要な記法を AST レベル�
 :::
 ```
 
-記法の全一覧は [`docs/reference/notations.md`](./docs/reference/notations.md)。
+これらが実際に組まれた誌面は [`examples/showcase-all-features/`](./examples/showcase-all-features/)（全部入り）で確認できる。記法の全一覧は [`docs/reference/notations.md`](./docs/reference/notations.md)。
 
 ---
 
