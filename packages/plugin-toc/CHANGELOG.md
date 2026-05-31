@@ -1,8 +1,8 @@
-# @kappan/cli
+# @kappan/plugin-toc
 
-## 0.3.2
+## 0.2.0
 
-### Patch Changes
+### Minor Changes
 
 - 1614576: ブロックレベルの意味づけ記法を `remark-directive`（`:::`）で導入した。
   - **`@kappan/plugin-admonition`（新規）**：`:::note` / `:::tip` / `:::warning` /
@@ -22,14 +22,7 @@
     GFM アラート出力を置き換え）。
   - **`@kappan/cli`**：`--version` の表示をハードコード `0.1.0` から package.json 由来に修正。
 
-- Updated dependencies [1614576]
-  - @kappan/core@0.5.0
-  - @kappan/migrate-review@0.3.2
-
-## 0.3.1
-
 ### Patch Changes
 
-- Updated dependencies [ffb8e14]
-  - @kappan/core@0.4.0
-  - @kappan/migrate-review@0.3.1
+- Updated dependencies [1614576]
+  - @kappan/core@0.5.0

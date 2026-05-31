@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-heading-number",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Automatic chapter and section heading numbering (第N章 / N.M) for Kappan",
   "main": "./src/index.ts",

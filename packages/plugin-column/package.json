@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-column",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Column (コラム) sidebar blocks with TOC listing and cross-references for Kappan",
   "main": "./src/index.ts",

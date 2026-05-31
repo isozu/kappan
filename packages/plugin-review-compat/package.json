@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-review-compat",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "type": "module",
   "description": "Re:VIEW notation compatibility layer for Kappan",
   "main": "./src/index.ts",
