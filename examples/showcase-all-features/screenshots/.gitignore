@@ -1,0 +1,5 @@
+# capture-screenshots.ts は全章の PNG を生成するが、追跡するのは README が参照する 2 枚だけ。
+# 残りはローカル確認用（再生成で作られる）なので無視する。
+*.png
+!all-features.png
+!ch03.png

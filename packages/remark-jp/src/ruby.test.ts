@@ -8,6 +8,7 @@ const stubCtx = {
   config: {} as KappanConfig,
   logger: { debug() {}, info() {}, warn() {}, error() {} },
   cache: { get: () => undefined, set: () => {}, delete: () => false },
+  chapters: [],
   emit: (_d: Diagnostic) => {},
 };
 
@@ -102,6 +103,63 @@ describe('ruby plugin', () => {
 
     const p = tree.children[0] as { children: unknown[] };
     expect(p.children.length).toBe(4);
+  });
+
+  it('expands the attribute form [漢字]{ruby="かんじ"}', async () => {
+    const plugin = ruby();
+    const tree = makeParagraph('これは[校正]{ruby="こうせい"}の作業。');
+    await plugin.hooks.onHast?.(tree, stubCtx);
+
+    const p = tree.children[0] as {
+      children: Array<{ type: string; value?: string; tagName?: string; children?: unknown[] }>;
+    };
+    expect(p.children).toHaveLength(3);
+    const rubyEl = p.children[1]!;
+    expect(rubyEl.tagName).toBe('ruby');
+    const rubyChildren = rubyEl.children as Array<{ value?: string; tagName?: string }>;
+    expect(rubyChildren.map((c) => c.value ?? c.tagName)).toEqual(['校正', 'rt']);
+    const rt = rubyChildren[1] as { children: Array<{ value: string }> };
+    expect(rt.children[0]?.value).toBe('こうせい');
+    expect(p.children[0]?.value).toBe('これは');
+    expect(p.children[2]?.value).toBe('の作業。');
+  });
+
+  it('handles pipe and attribute forms mixed in one text, in order', async () => {
+    const plugin = ruby();
+    const tree = makeParagraph('{活版|かっぱん}と[校正]{ruby="こうせい"}');
+    await plugin.hooks.onHast?.(tree, stubCtx);
+
+    const p = tree.children[0] as { children: Array<{ tagName?: string }> };
+    const rubyCount = p.children.filter((c) => c.tagName === 'ruby').length;
+    expect(rubyCount).toBe(2);
+  });
+
+  it('does not touch the attribute form inside code elements', async () => {
+    const plugin = ruby();
+    const tree: HastRoot = {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          tagName: 'code',
+          properties: {},
+          children: [{ type: 'text', value: '[x]{ruby="y"}' }],
+        },
+      ],
+    };
+    await plugin.hooks.onHast?.(tree, stubCtx);
+    const code = tree.children[0] as { children: Array<{ type: string }> };
+    expect(code.children).toHaveLength(1);
+    expect(code.children[0]?.type).toBe('text');
+  });
+
+  it('leaves the attribute form unchanged when enableAttrSyntax is false', async () => {
+    const plugin = ruby({ enableAttrSyntax: false });
+    const tree = makeParagraph('[校正]{ruby="こうせい"}だけ');
+    await plugin.hooks.onHast?.(tree, stubCtx);
+
+    const p = tree.children[0] as { children: Array<{ type: string; tagName?: string }> };
+    expect(p.children.every((c) => c.tagName !== 'ruby')).toBe(true);
   });
 });
 

@@ -1,0 +1,43 @@
+{
+  "name": "@kappan/plugin-toc",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Reader-visible table of contents (目次) page generator for Kappan",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@kappan/core": "workspace:*",
+    "@types/mdast": "^4.0.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "license": "MIT",
+  "keywords": [
+    "kappan-plugin",
+    "kappan",
+    "table-of-contents",
+    "toc"
+  ],
+  "author": "isozu",
+  "homepage": "https://github.com/isozu/kappan#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isozu/kappan.git",
+    "directory": "packages/plugin-toc"
+  },
+  "bugs": {
+    "url": "https://github.com/isozu/kappan/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -19,6 +19,7 @@ function makeCtx() {
         return cache.delete(k);
       },
     },
+    chapters: [],
     emit: (_d: Diagnostic) => {},
   };
 }

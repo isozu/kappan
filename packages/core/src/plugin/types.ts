@@ -2,6 +2,7 @@ import type { Root as MdastRoot } from 'mdast';
 import type { Root as HastRoot } from 'hast';
 import type { Diagnostic } from '../types.js';
 import type { KappanConfig } from '../config/schema.js';
+import type { ChapterMeta } from './chapterRegistry.js';
 
 /**
  * プラグイン種別。5 分類に対応。
@@ -38,17 +39,19 @@ export interface PluginEpubPackage {
 /**
  * プラグインに渡されるコンテキスト（PluginContext）。
  *
- * 最小実装：
  *   - config: 読み出し専用の設定
  *   - logger: コンソール出力
- *   - cache: プラグイン横断のキー値ストア
+ *   - cache: プラグイン横断のキー値ストア（型は使う側の責任で管理する）
  *   - emit: Diagnostic を発行する
+ *   - chapters: spine 順に並んだ全章の front-matter / パス情報（読み出し専用）。
+ *     h1 テキストを再パースせずに章 ID や種別を知るためのチャネル。
  */
 export interface PluginContext {
   readonly config: KappanConfig;
   readonly logger: PluginLogger;
   readonly cache: PluginCache;
   readonly emit: (diagnostic: Diagnostic) => void;
+  readonly chapters: readonly ChapterMeta[];
 }
 
 export interface PluginLogger {
@@ -130,6 +133,12 @@ export interface GeneratedDocument {
   readonly xhtml: string;
   /** manifest の properties（例 ["nav"] 相当の独自値はここでは付けない） */
   readonly properties?: readonly string[];
+  /**
+   * spine 上の配置位置。
+   *   - `'after-bodymatter'`（既定・後方互換）：本文末尾の後ろ（索引・奥付など）
+   *   - `'before-bodymatter'`：本文先頭の前（目次ページなど）
+   */
+  readonly position?: 'before-bodymatter' | 'after-bodymatter';
 }
 
 /**

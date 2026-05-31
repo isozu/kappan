@@ -32,6 +32,55 @@ Kappan が受理する記法の一覧。
 | 圏点           | `[重要]{.kenten}`       | 圏点付きの強調                     |
 | 下線           | `[語]{.underline}`      | `text-decoration` 下線             |
 
+## 囲み記事・コラム（remark-directive、`:::`）
+
+ブロックレベルの意味づけは [remark-directive](https://github.com/remarkjs/remark-directive) の
+コンテナディレクティブ（`:::`）で書く。`@kappan/core` がパーサに組み込み済みで、
+行中の `:name`（textディレクティブ）は意図しない解釈を避けるため自動的に素のテキストへ
+戻す（`[@fig:id]` などの参照記法と衝突しない）。
+
+### 囲み記事（`@kappan/plugin-admonition`）
+
+```markdown
+:::note
+補足の注記。
+:::
+
+:::warning[互換性の注意]
+古いリーダーでは MathML が表示できない。
+:::
+```
+
+| 記法               | 出力                                                 | 種別                                                     |
+| ------------------ | ---------------------------------------------------- | -------------------------------------------------------- |
+| `:::note … :::`    | `<aside class="admonition note">…</aside>`           | note / tip / warning / caution / important / info / memo |
+| `:::warning[題] …` | タイトル付き（`<p class="admonition-title">題</p>`） | `[…]` で見出しを指定                                     |
+
+テーマ CSS（saiun / hibana）の `.admonition` / `.admonition.warning` / `.admonition.tip` /
+`.admonition-title` が装飾する。Re:VIEW の `//note //tip //warning //caution //important
+//info //memo` は移行時にこのディレクティブへ変換される。詳細は
+[囲み記事 How-to](../howto/write-admonition.md)。
+
+### コラム（`@kappan/plugin-column`）
+
+```markdown
+:::column[なぜ速いのか]{#col:why-fast}
+コラム本文。複数段落・コード・図も入る。
+:::
+
+このトピックは [@col:why-fast] で詳しく扱った。
+```
+
+| 記法                           | 出力                                                                | 状態        |
+| ------------------------------ | ------------------------------------------------------------------- | ----------- |
+| `:::column[題]{#col:id} … :::` | `<aside epub:type="sidebar" class="admonition column" id="col-id">` | ✓           |
+| コラム参照 `[@col:id]`         | `コラム「題」`へのリンク（`#col-id`）                               | ✓（リンク） |
+| 章跨ぎ参照 `[@col:章ID/id]`    | `章ID.xhtml#col-id` へのリンク                                      | ✓（リンク） |
+
+コラムは目次（`@kappan/plugin-toc`）に「コラム」行として載る。`plugins` 配列では
+`headingNumber()` の後に `column()` を置くこと。Re:VIEW の `//column` ＋ `@<column>{}` に
+相当する。詳細は [コラム How-to](../howto/write-column.md)。
+
 ## 図表番号・相互参照（fig/tbl/lst/sec/chap/eq、`@kappan/plugin-figure-numbering` 0.4.0）
 
 `figureNumbering()` が章内連番を振り、`[@kind:id]` で参照を解決する。章をまたぐ参照（別章の図・節・章）も `onMdastAllChapters` フェーズで解決される。解決された参照は番号付きラベル（「図1.1」など）の**ハイパーリンク**になり、図表・節・章のアンカーへジャンプできる。図・表・リストには可視のキャプション（`図N.N: …` / `表N.N: …` / `リストN.N: …`）が付く。
@@ -100,7 +149,11 @@ Re:VIEW から移行したプロジェクトで、`.md` に Re:VIEW 記法が残
 
 ### ブロック（18+ 種、✓）
 
-`//list //emlist //cmd //quote //note //tip //warning //important //image //indepimage //footnote //texequation //table //ref //info //memo //caution //comment`
+`//list //emlist //cmd //quote //note //tip //warning //important //column //image //indepimage //footnote //texequation //table //ref //info //memo //caution //comment`
+
+> `//note` 〜 `//memo` は `:::note` 等のディレクティブに、`//column[caption]` は
+> `:::column[caption]{#col:…}` に変換される（`@kappan/plugin-admonition` /
+> `@kappan/plugin-column` が描画する）。
 
 ### catalog.yml（✓）
 

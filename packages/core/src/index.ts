@@ -53,9 +53,24 @@ export {
   type AceImpactCounts,
   type AceRawReport,
 } from './validate/ace.js';
-export type { Diagnostic, SourceFile, ChapterFrontmatter, ThemeLike } from './types.js';
+export type {
+  Diagnostic,
+  SourceFile,
+  ChapterFrontmatter,
+  ChapterKind,
+  ThemeLike,
+} from './types.js';
 export { definePlugin, type DefinePluginInput } from './plugin/definePlugin.js';
 export { createPluginContext } from './plugin/context.js';
+export {
+  buildChapterRegistry,
+  CHAPTER_REGISTRY_CACHE_KEY,
+  type ChapterMeta,
+  type ChapterRecord,
+  type ChapterRegistry,
+  type ColumnRecord,
+  type SectionRecord,
+} from './plugin/chapterRegistry.js';
 export {
   runOnInit,
   runOnSource,

@@ -7,6 +7,7 @@ const stubCtx = {
   config: {} as KappanConfig,
   logger: { debug() {}, info() {}, warn() {}, error() {} },
   cache: { get: () => undefined, set: () => {}, delete: () => false },
+  chapters: [],
   emit: (_d: Diagnostic) => {},
 };
 
@@ -30,6 +31,7 @@ function makeSharedCtx() {
           return cache.delete(k);
         },
       },
+      chapters: [],
       emit: (d: Diagnostic) => emitted.push(d),
     },
   };
@@ -465,5 +467,71 @@ describe('figureNumbering plugin', () => {
     await plugin.hooks.onMdast?.(tree, stubCtx);
     const fig = tree.children[1] as Loose;
     expect(fig.children[1]?.children?.[0]?.value).toBe('図1.1: foreword');
+  });
+
+  it('uses front-matter id from ctx.chapters when present (heading-number alignment)', async () => {
+    // h1 にマーカーは無いが、front-matter id `ch05` で章番号 5 を解決して図番号 5.1 にする。
+    const plugin = figureNumbering();
+    const tree: MdastRoot = {
+      type: 'root',
+      children: [
+        { type: 'heading', depth: 1, children: [{ type: 'text', value: 'はじめに {#ch05}' }] },
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'image', url: 'img/a.png', alt: '構成図', title: null },
+            { type: 'text', value: '{#fig:a}' },
+          ],
+        },
+      ],
+    };
+    const ctx = {
+      ...stubCtx,
+      chapters: [
+        {
+          id: 'ch05',
+          relativePath: 'ch05.md',
+          spineIndex: 0,
+          title: 'はじめに',
+          frontmatter: { id: 'ch05', title: 'はじめに' },
+        },
+      ],
+    };
+    await plugin.hooks.onMdast?.(tree, ctx);
+    const fig = tree.children[1] as Loose;
+    expect(fig.children[1]?.children?.[0]?.value).toBe('図5.1: 構成図');
+  });
+
+  it('prefers front-matter chapterNumber override over {#chXX} marker', async () => {
+    // front-matter chapterNumber=42 が最優先（heading-number と同じ priority）。
+    const plugin = figureNumbering();
+    const tree: MdastRoot = {
+      type: 'root',
+      children: [
+        { type: 'heading', depth: 1, children: [{ type: 'text', value: 'タイトル {#ch01}' }] },
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'image', url: 'img/x.png', alt: '図', title: null },
+            { type: 'text', value: '{#fig:x}' },
+          ],
+        },
+      ],
+    };
+    const ctx = {
+      ...stubCtx,
+      chapters: [
+        {
+          id: 'ch01',
+          relativePath: 'a.md',
+          spineIndex: 0,
+          title: 'タイトル',
+          frontmatter: { id: 'ch01', title: 'タイトル', chapterNumber: 42 },
+        },
+      ],
+    };
+    await plugin.hooks.onMdast?.(tree, ctx);
+    const fig = tree.children[1] as Loose;
+    expect(fig.children[1]?.children?.[0]?.value).toBe('図42.1: 図');
   });
 });

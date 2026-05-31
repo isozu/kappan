@@ -33,7 +33,9 @@ import {
   runOnPackage,
   runOnValidate,
 } from '../plugin/runHooks.js';
-import type { PluginEpubPackage } from '../plugin/types.js';
+import type { PluginEpubPackage, GeneratedDocument } from '../plugin/types.js';
+import type { ChapterMeta, ChapterRegistry } from '../plugin/chapterRegistry.js';
+import { CHAPTER_REGISTRY_CACHE_KEY } from '../plugin/chapterRegistry.js';
 
 export interface BuildBookOptions {
   readonly config: KappanConfig;
@@ -75,7 +77,14 @@ export async function buildBook(opts: BuildBookOptions): Promise<BuildBookResult
 
   // 2. テーマアセット取得 + プラグインコンテキスト構築
   const themeAssets = await config.theme.getAssets();
-  const pluginCtx = createPluginContext({ config, diagnostics });
+  const chapterMetas: ChapterMeta[] = chapters.map((c, idx) => ({
+    id: c.id,
+    relativePath: c.relativePath,
+    spineIndex: idx,
+    title: c.title,
+    frontmatter: c.frontmatter,
+  }));
+  const pluginCtx = createPluginContext({ config, diagnostics, chapters: chapterMetas });
 
   // 3. プラグインの onInit 実行
   await runOnInit(plugins, pluginCtx);
@@ -160,17 +169,33 @@ export async function buildBook(opts: BuildBookOptions): Promise<BuildBookResult
       );
     }
 
-    // 4b. プラグインの onGenerate を呼ぶ（巻末索引・奥付などを spine に追加）。
+    // 4b. プラグインの onGenerate を呼ぶ（目次・巻末索引・奥付などを spine に追加）。
     // 全章の XHTML 確定後、manifest/spine 構築前に実行する。
+    //
+    // `position` で前付け / 後付けに振り分ける：
+    //   - `'before-bodymatter'`：本文先頭の前（plugin-toc などが使う）
+    //   - `'after-bodymatter'`（既定）：本文末尾の後ろ（plugin-jp-index など）
     const generatedDocs = await runOnGenerate(plugins, pluginCtx);
+    const beforeDocs: readonly GeneratedDocument[] = generatedDocs.filter(
+      (d) => d.position === 'before-bodymatter',
+    );
+    const afterDocs: readonly GeneratedDocument[] = generatedDocs.filter(
+      (d) => d.position !== 'before-bodymatter',
+    );
 
-    // 5. NAV ドキュメント生成（本文章 + 生成ドキュメントを含める）
+    // 5. NAV ドキュメント生成（前付け生成 → 本文章 → 後付け生成 の順で並べる）
+    //
+    // 本文章のタイトルは `ChapterRegistry`（plugin-heading-number が publish）の
+    // `numberedTitle` を優先利用する。これにより、リーダー内蔵 nav の表示が
+    // 「第1章　はじめに」のように本文 h1 と一致する。レジストリ未公開時は素のタイトル。
+    const registry = pluginCtx.cache.get<ChapterRegistry>(CHAPTER_REGISTRY_CACHE_KEY);
     const navEntries: NavEntry[] = [
+      ...beforeDocs.map((doc) => ({ href: doc.href, title: doc.title })),
       ...renderedChapters.map(({ chapter }) => ({
         href: `content/${chapter.id}.xhtml`,
-        title: chapter.title,
+        title: registry?.byId.get(chapter.id)?.numberedTitle || chapter.title,
       })),
-      ...generatedDocs.map((doc) => ({ href: doc.href, title: doc.title })),
+      ...afterDocs.map((doc) => ({ href: doc.href, title: doc.title })),
     ];
     const navXhtml = buildNavXhtml(navEntries, config.metadata.language);
 
@@ -180,6 +205,19 @@ export async function buildBook(opts: BuildBookOptions): Promise<BuildBookResult
     ];
     const spine: SpineEntry[] = [];
 
+    // 6a. 前付け生成ドキュメント（目次など）を本文の前に積む
+    for (const doc of beforeDocs) {
+      const docProps = [...(doc.properties ?? []), ...detectContentProperties(doc.xhtml)];
+      manifest.push({
+        id: doc.id,
+        href: doc.href,
+        mediaType: 'application/xhtml+xml',
+        ...(docProps.length > 0 ? { properties: [...new Set(docProps)] } : {}),
+      });
+      spine.push({ idref: doc.id, linear: true });
+    }
+
+    // 6b. 本文章
     for (const { chapter, xhtml } of renderedChapters) {
       const props = detectContentProperties(xhtml);
       manifest.push({
@@ -191,8 +229,8 @@ export async function buildBook(opts: BuildBookOptions): Promise<BuildBookResult
       spine.push({ idref: chapter.id, linear: true });
     }
 
-    // 生成ドキュメント（索引など）を manifest / spine に追加
-    for (const doc of generatedDocs) {
+    // 6c. 後付け生成ドキュメント（索引・奥付など）
+    for (const doc of afterDocs) {
       const docProps = [...(doc.properties ?? []), ...detectContentProperties(doc.xhtml)];
       manifest.push({
         id: doc.id,

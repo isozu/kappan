@@ -194,27 +194,30 @@ function convertBlock(
       return body.map((l) => '> ' + l).join('\n');
     }
     case 'note':
-      return admonition('NOTE', args, body);
+      return admonition('note', args, body);
     case 'tip':
-      return admonition('TIP', args, body);
+      return admonition('tip', args, body);
     case 'warning':
-      return admonition('WARNING', args, body);
+      return admonition('warning', args, body);
     case 'caution':
-      return admonition('CAUTION', args, body);
+      return admonition('caution', args, body);
     case 'important':
-      return admonition('IMPORTANT', args, body);
+      return admonition('important', args, body);
     case 'info':
-      return admonition('NOTE', args, body); // GFM に INFO が無いので NOTE で代用
+      return admonition('info', args, body);
     case 'memo':
-      return admonition('NOTE', args, body);
+      return admonition('memo', args, body);
     case 'centering':
       return body.map((l) => `<p style="text-align:center">${l}</p>`).join('\n');
     case 'flushright':
       return body.map((l) => `<p style="text-align:right">${l}</p>`).join('\n');
     case 'column': {
-      // コラム。タイトル付きの強調枠として注釈ブロックに似た形で出す
+      // コラム。`@kappan/plugin-column` の `:::column` ディレクティブに変換する。
+      // タイトルから参照 id を導く（`@<column>{caption}` の移行先 `[@col:id]` に対応）。
       const title = args[0] ?? 'コラム';
-      return admonition('NOTE', [title], body);
+      const colId = sanitizeXmlId(title);
+      const head = `:::column[${escapeDirectiveLabel(title)}]{#col:${colId}}`;
+      return [head, ...body, ':::'].join('\n');
     }
     case 'texequation': {
       // 数式ブロック。直接の整形は未対応だが、TeX ソースを `$$...$$` で残してフォールバック
@@ -282,10 +285,19 @@ function reviewTableToMarkdown(body: readonly string[]): string {
   return [padded(header), sep, ...data.map(padded)].join('\n');
 }
 
+/**
+ * 囲み記事を `@kappan/plugin-admonition` の `:::kind[title]` ディレクティブに変換する。
+ * `kind` は小文字（note / tip / warning / caution / important / info / memo）。
+ */
 function admonition(kind: string, args: readonly string[], body: readonly string[]): string {
   const title = args[0];
-  const titleLine = title ? `> [!${kind}] ${title}` : `> [!${kind}]`;
-  return [titleLine, ...body.map((l) => '> ' + l)].join('\n');
+  const head = title ? `:::${kind}[${escapeDirectiveLabel(title)}]` : `:::${kind}`;
+  return [head, ...body, ':::'].join('\n');
+}
+
+/** ディレクティブラベル `[...]` 内で `]` をエスケープする。 */
+function escapeDirectiveLabel(text: string): string {
+  return text.replace(/]/g, '\\]');
 }
 
 /**

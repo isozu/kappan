@@ -1,4 +1,5 @@
 import { Builtins, Cli } from 'clipanion';
+import pkg from '../package.json' with { type: 'json' };
 import { BuildCommand } from './commands/build.js';
 import { PreviewCommand } from './commands/preview.js';
 import { MigrateCommand } from './commands/migrate.js';
@@ -16,7 +17,7 @@ export function createCli(): Cli {
   const cli = new Cli({
     binaryLabel: 'Kappan',
     binaryName: 'kappan',
-    binaryVersion: '0.1.0',
+    binaryVersion: pkg.version,
   });
   cli.register(BuildCommand);
   cli.register(PreviewCommand);

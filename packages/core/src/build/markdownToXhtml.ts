@@ -1,6 +1,7 @@
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
+import remarkDirective from 'remark-directive';
 import remarkRehype from 'remark-rehype';
 import rehypeFormat from 'rehype-format';
 import rehypeStringify from 'rehype-stringify';
@@ -44,7 +45,15 @@ export interface RenderChapterOptions {
   readonly onHast?: (tree: HastRoot) => Promise<void> | void;
 }
 
-const parseProcessor = unified().use(remarkParse).use(remarkGfm, { singleTilde: false });
+// remark-directive を有効化すると `:::name[label]{#id .class}` が
+// `containerDirective` / `leafDirective` / `textDirective` ノードとして mdast に出る。
+// これ自体は出力に何も足さない（hName 未設定のディレクティブは描画されない）。
+// `plugin-admonition` / `plugin-column` などが onMdast でこれらを拾い、
+// `data.hName` / `data.hProperties` を設定して `<aside>` 等に変換する。
+const parseProcessor = unified()
+  .use(remarkParse)
+  .use(remarkGfm, { singleTilde: false })
+  .use(remarkDirective);
 
 /**
  * Markdown 文字列を mdast にだけ変換する（プラグイン適用前の素の木）。
@@ -54,7 +63,82 @@ const parseProcessor = unified().use(remarkParse).use(remarkGfm, { singleTilde: 
  * 章ごと続行（onHast 〜 stringify）」の 4 ステップに分解できるよう公開する。
  */
 export function parseMarkdownToMdast(markdown: string): MdastRoot {
-  return parseProcessor.parse(markdown) as MdastRoot;
+  const tree = parseProcessor.parse(markdown) as MdastRoot;
+  healInlineDirectives(tree as unknown as DirectiveParent);
+  return tree;
+}
+
+/**
+ * remark-directive は `:::name`（containerDirective）だけでなく、行中の `:name`
+ * （textDirective）と `::name`（leafDirective）も解釈する。Kappan が使うのは
+ * **コンテナディレクティブのみ**で、行中の `:name` は意図しない解釈になる
+ * （特に Pandoc-crossref 互換の `[@fig:id]` / `[@col:id]` の `:id` が
+ * textDirective として食われ、参照記法が壊れる）。
+ *
+ * そこで parse 直後に、text / leaf ディレクティブを元のソース文字列に戻し
+ * （`:name[label]{attrs}` を復元）、隣接する text ノードを連結して
+ * `[@fig:id]` のような参照が 1 つの text ノードに収まるようにする。
+ * コンテナディレクティブ（`:::`）はそのまま残し、子を再帰的に healing する。
+ */
+interface DirectiveNode {
+  type: string;
+  name?: string;
+  attributes?: Record<string, string | null | undefined> | null;
+  value?: string;
+  children?: DirectiveNode[];
+}
+type DirectiveParent = DirectiveNode & { children: DirectiveNode[] };
+
+function reconstructDirectiveSource(node: DirectiveNode): string {
+  const marker = node.type === 'leafDirective' ? '::' : ':';
+  let s = `${marker}${node.name ?? ''}`;
+  if (node.children && node.children.length > 0) {
+    s += `[${directiveChildrenToText(node.children)}]`;
+  }
+  const attrs = node.attributes;
+  if (attrs) {
+    const parts: string[] = [];
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null) continue;
+      if (k === 'id') parts.push(`#${v}`);
+      else if (k === 'class') {
+        for (const c of String(v).split(/\s+/).filter(Boolean)) parts.push(`.${c}`);
+      } else parts.push(`${k}="${v}"`);
+    }
+    if (parts.length > 0) s += `{${parts.join(' ')}}`;
+  }
+  return s;
+}
+
+function directiveChildrenToText(nodes: readonly DirectiveNode[]): string {
+  let s = '';
+  for (const n of nodes) {
+    if (n.type === 'text') s += n.value ?? '';
+    else if (n.type === 'textDirective' || n.type === 'leafDirective')
+      s += reconstructDirectiveSource(n);
+    else if (n.children) s += directiveChildrenToText(n.children);
+  }
+  return s;
+}
+
+function healInlineDirectives(parent: DirectiveParent): void {
+  const next: DirectiveNode[] = [];
+  const pushText = (value: string): void => {
+    const last = next[next.length - 1];
+    if (last && last.type === 'text') last.value = (last.value ?? '') + value;
+    else next.push({ type: 'text', value });
+  };
+  for (const child of parent.children) {
+    if (child.type === 'textDirective' || child.type === 'leafDirective') {
+      pushText(reconstructDirectiveSource(child));
+      continue;
+    }
+    // containerDirective はそのまま残すが、子は healing する。
+    if (child.children) healInlineDirectives(child as DirectiveParent);
+    if (child.type === 'text') pushText(child.value ?? '');
+    else next.push(child);
+  }
+  parent.children = next;
 }
 
 interface FootnoteLabels {
@@ -136,8 +220,8 @@ const sanitizeSchema = {
  *   - `'trusted'`: `allowDangerousHtml: true` のみ（sanitize なし、自己責任）
  */
 export async function renderChapter(markdown: string, opts: RenderChapterOptions): Promise<string> {
-  // 1. Markdown → mdast
-  const mdast = parseProcessor.parse(markdown) as MdastRoot;
+  // 1. Markdown → mdast（text/leaf ディレクティブの healing 込み）
+  const mdast = parseMarkdownToMdast(markdown);
 
   // 2. プラグインの onMdast を呼ぶ
   if (opts.onMdast) await opts.onMdast(mdast);

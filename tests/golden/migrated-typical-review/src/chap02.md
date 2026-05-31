@@ -14,7 +14,8 @@ function greet(name: string): string {
 }
 ```
 
-> [!NOTE]
-> これは注釈ブロックである。
+:::note
+これは注釈ブロックである。
+:::
 
 ![サンプル画像](../images/sample.png)
