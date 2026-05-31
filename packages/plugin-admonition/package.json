@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-admonition",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Admonition / callout blocks (:::note / :::warning …) for Kappan via remark-directive",
   "main": "./src/index.ts",

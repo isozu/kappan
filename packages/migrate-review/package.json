@@ -1,6 +1,6 @@
 {
   "name": "@kappan/migrate-review",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "description": "Migrate a Re:VIEW project to a Kappan project (.re files, config.yml, catalog.yml, images)",
   "main": "./src/index.ts",

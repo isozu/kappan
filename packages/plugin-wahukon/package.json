@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-wahukon",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "description": "Wahukon: auto letter-spacing class between Japanese and Latin/numeric runs (M2-B)",
   "main": "./src/index.ts",

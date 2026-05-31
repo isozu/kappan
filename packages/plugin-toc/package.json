@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-toc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Reader-visible table of contents (目次) page generator for Kappan",
   "main": "./src/index.ts",

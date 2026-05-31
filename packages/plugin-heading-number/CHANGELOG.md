@@ -1,5 +1,12 @@
 # @kappan/plugin-heading-number
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [1614576]
+  - @kappan/core@0.5.0
+
 ## 0.2.0
 
 ### Minor Changes
