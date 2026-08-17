@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type {
-  ChapterRegistry,
-  Diagnostic,
-  GeneratedDocument,
-  KappanConfig,
-} from '@kappan/core';
+import type { ChapterRegistry, Diagnostic, GeneratedDocument, KappanConfig } from '@kappan/core';
 import { CHAPTER_REGISTRY_CACHE_KEY, buildChapterRegistry } from '@kappan/core';
 import { toc } from './index.js';
 

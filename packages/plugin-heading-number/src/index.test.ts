@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Root as MdastRoot, Heading } from 'mdast';
-import type {
-  ChapterMeta,
-  ChapterRegistry,
-  Diagnostic,
-  KappanConfig,
-} from '@kappan/core';
+import type { ChapterMeta, ChapterRegistry, Diagnostic, KappanConfig } from '@kappan/core';
 import { CHAPTER_REGISTRY_CACHE_KEY } from '@kappan/core';
 import { headingNumber } from './index.js';
 

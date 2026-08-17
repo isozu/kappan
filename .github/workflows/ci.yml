@@ -232,7 +232,17 @@ jobs:
         # ace-axe-runner-puppeteer は Chromium を起動して axe-core の DOM 検査を
         # 走らせる。runner に Chromium が無いと AceNotInstalledError ではなく
         # 「Could not find Chrome」内部エラーで ACE が落ちるため、明示的に入れる。
-        run: npx puppeteer browsers install chrome
+        #
+        # puppeteer は ace-axe-runner-puppeteer の推移的依存なので、pnpm の
+        # 隔離 node_modules では root の .bin に張られない（`npx puppeteer` が
+        # exit 127 になる）。ランナーが要求するのと同じレンジで root にも直接
+        # 依存として足し、bin を解決可能にしたうえで CLI を叩く。
+        # レンジを合わせることで解決結果が dedupe され、ランナーが使う
+        # puppeteer と同じ Chrome リビジョンが入る。
+        run: |
+          PUPPETEER_RANGE=$(node -p "JSON.parse(require('fs').readFileSync('node_modules/@daisy/ace-axe-runner-puppeteer/package.json','utf8')).dependencies.puppeteer")
+          pnpm add -D -w "puppeteer@${PUPPETEER_RANGE}"
+          pnpm exec puppeteer browsers install chrome
 
       - name: Set up Java for EPUBCheck
         uses: actions/setup-java@v4

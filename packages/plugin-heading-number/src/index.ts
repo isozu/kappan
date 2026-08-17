@@ -41,12 +41,7 @@ interface ResolvedOptions {
   readonly validateConsistency: boolean;
 }
 
-type ChapterNumberSource =
-  | 'fm-chapterNumber'
-  | 'fm-id'
-  | 'id-marker'
-  | 'explicit-label'
-  | 'auto';
+type ChapterNumberSource = 'fm-chapterNumber' | 'fm-id' | 'id-marker' | 'explicit-label' | 'auto';
 
 /**
  * 見出しの自動採番プラグイン（v0.3 で章番号源を front-matter 優先に変更）。

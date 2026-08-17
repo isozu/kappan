@@ -26,14 +26,14 @@ export default defineConfig({
 
 ## オプション
 
-| 名前 | 型 | 既定 | 説明 |
-|------|------|--------|------|
-| `title` | `string` | `'目次'` | 目次ページのタイトル (h1) |
-| `depth` | `1 \| 2 \| 3` | `1` | 章のみ / +h2 / +h3 |
-| `position` | `'before-bodymatter' \| 'after-bodymatter'` | `'before-bodymatter'` | 本文の前 / 後 |
-| `href` | `string` | `'content/toc.xhtml'` | EPUB 内パス |
-| `id` | `string` | `'gentoc'` | manifest / spine の id |
-| `includeNonChapter` | `boolean` | `false` | 凡例・索引など `kind !== 'chapter'` を含めるか |
+| 名前                | 型                                          | 既定                  | 説明                                           |
+| ------------------- | ------------------------------------------- | --------------------- | ---------------------------------------------- |
+| `title`             | `string`                                    | `'目次'`              | 目次ページのタイトル (h1)                      |
+| `depth`             | `1 \| 2 \| 3`                               | `1`                   | 章のみ / +h2 / +h3                             |
+| `position`          | `'before-bodymatter' \| 'after-bodymatter'` | `'before-bodymatter'` | 本文の前 / 後                                  |
+| `href`              | `string`                                    | `'content/toc.xhtml'` | EPUB 内パス                                    |
+| `id`                | `string`                                    | `'gentoc'`            | manifest / spine の id                         |
+| `includeNonChapter` | `boolean`                                   | `false`               | 凡例・索引など `kind !== 'chapter'` を含めるか |
 
 ## CSS フック
 
