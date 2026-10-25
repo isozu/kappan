@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-tcy-smart",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "description": "Smart tate-chu-yoko: context-aware text-combine-upright for 2-digit numbers (M2-B)",
   "main": "./src/index.ts",

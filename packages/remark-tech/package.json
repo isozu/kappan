@@ -1,6 +1,6 @@
 {
   "name": "@kappan/remark-tech",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "description": "Technical book extensions for Kappan: shiki syntax highlighting and KaTeX math (M2)",
   "main": "./src/index.ts",

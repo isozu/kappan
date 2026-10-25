@@ -1,6 +1,6 @@
 {
   "name": "@kappan/plugin-reader-shim",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "description": "Reader compatibility shim: tag body with reader-profile classes (M2-A, horizontal + vertical)",
   "main": "./src/index.ts",

@@ -1,6 +1,6 @@
 {
   "name": "@kappan/themes-sumi",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "description": "Kappan Sumi theme: vertical-writing (tategumi) novels with chapter openers and dialogue indentation",
   "main": "./src/index.ts",
