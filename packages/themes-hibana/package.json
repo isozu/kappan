@@ -1,6 +1,6 @@
 {
   "name": "@kappan/themes-hibana",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "description": "Kappan Hibana theme (火花): for manuals and how-to guides (M2-B)",
   "main": "./src/index.ts",
