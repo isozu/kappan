@@ -189,34 +189,35 @@ EPUB リーダーの実装差異は本ツールの仕様だけでは吸収しき
 
 _最終更新: 2026-05-27。この表は
 `.github/workflows/reader-matrix.yml` が四半期ごとに自動再生成する。`✅` 完全対応 /
-`⚠` 部分対応または表示差異 / `❌` 未対応。縦組み（vertical-rl）は
+`⚠` 部分対応または表示差異 / `❌` 未対応。縦組み（vertical-rl）は M2-A で対応し、
 Chromium（Thorium 近似）で構造・レイアウトを自動検証している。実フォントでの最終目視はユーザー領域。_
 
 ### 横組み（horizontal-tb）
 
-| 機能                                   | Apple Books | Kindle (KFX) | Kobo | honto | Thorium |
-| -------------------------------------- | ----------- | ------------ | ---- | ----- | ------- |
-| リフロー表示                           | ✅          | ✅           | ✅   | ✅    | ✅      |
-| ルビ                                   | ✅          | ✅           | ⚠    | ✅    | ✅      |
-| 圏点                                   | ✅          | ⚠            | ❌   | ✅    | ✅      |
-| OpenType機能                           | ✅          | ⚠            | ⚠    | ⚠     | ✅      |
-| 埋め込みフォント                       | ✅          | ✅           | ⚠    | ✅    | ✅      |
-| MathML                                 | ✅          | ❌           | ❌   | ❌    | ✅      |
-| 数式SVG                                | ✅          | ✅           | ✅   | ✅    | ✅      |
-| 図表番号・相互参照                     | ✅          | ✅           | ✅   | ✅    | ✅      |
-| 脚注ポップアップ（epub:type=footnote） | ✅          | ⚠            | ⚠    | ⚠     | ✅      |
+| 機能 | Apple Books | Kindle (KFX) | Kobo | honto | Thorium |
+| --- | --- | --- | --- | --- | --- |
+| リフロー表示 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ルビ | ✅ | ✅ | ⚠ | ✅ | ✅ |
+| 圏点 | ✅ | ⚠ | ❌ | ✅ | ✅ |
+| OpenType機能 | ✅ | ⚠ | ⚠ | ⚠ | ✅ |
+| 埋め込みフォント | ✅ | ✅ | ⚠ | ✅ | ✅ |
+| MathML | ✅ | ❌ | ❌ | ❌ | ✅ |
+| 数式SVG | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 図表番号・相互参照 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 脚注ポップアップ（epub:type=footnote） | ✅ | ⚠ | ⚠ | ⚠ | ✅ |
 
 ### 縦組み（vertical-rl）
 
-| 機能                                        | Apple Books | Kindle (KFX) | Kobo | honto | Thorium |
-| ------------------------------------------- | ----------- | ------------ | ---- | ----- | ------- |
-| 縦書き（vertical-rl・page-progression rtl） | ✅          | ✅           | ⚠    | ✅    | ⚠       |
-| 縦組みルビ（ruby-position: right）          | ✅          | ⚠            | ⚠    | ✅    | ⚠       |
-| 縦組み圏点（text-emphasis-position）        | ✅          | ⚠            | ❌   | ✅    | ⚠       |
-| 縦中横（tcy・text-combine-upright）         | ✅          | ⚠            | ⚠    | ✅    | ✅      |
-| 連続約物（ダーシ・三点リーダ非改行）        | ✅          | ✅           | ⚠    | ✅    | ✅      |
-| 会話文・地の文の字下げ制御                  | ✅          | ✅           | ✅   | ✅    | ✅      |
-| 章頭改ページ（break-before）                | ✅          | ✅           | ✅   | ✅    | ✅      |
+| 機能 | Apple Books | Kindle (KFX) | Kobo | honto | Thorium |
+| --- | --- | --- | --- | --- | --- |
+| 縦書き（vertical-rl・page-progression rtl） | ✅ | ✅ | ⚠ | ✅ | ⚠ |
+| 縦組みルビ（ruby-position: right） | ✅ | ⚠ | ⚠ | ✅ | ⚠ |
+| 縦組み圏点（text-emphasis-position） | ✅ | ⚠ | ❌ | ✅ | ⚠ |
+| 縦中横（tcy・text-combine-upright） | ✅ | ⚠ | ⚠ | ✅ | ✅ |
+| コードブロック横組み内包（pre） | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 連続約物（ダーシ・三点リーダ非改行） | ✅ | ✅ | ⚠ | ✅ | ✅ |
+| 会話文・地の文の字下げ制御 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 章頭改ページ（break-before） | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 <!-- READER-MATRIX:END -->
 
